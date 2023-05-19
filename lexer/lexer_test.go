@@ -1,7 +1,7 @@
 package lexer_test
 
 import (
-	"jsonsort/jsonish/lexer"
+	"jsonsrt/lexer"
 	"reflect"
 	"testing"
 )
