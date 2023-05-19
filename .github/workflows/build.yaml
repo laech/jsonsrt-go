@@ -21,7 +21,7 @@ jobs:
           go-version: 1.x
 
       - run: go test -v ./...
-      - run: go build -v ./... && pwd && ls -l
+      - run: go build -v ./... && pwd && ls -al && ls -al ..
         env:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
