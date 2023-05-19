@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version: 1.x
 
@@ -30,4 +30,6 @@ jobs:
         with:
           if-no-files-found: error
           name: jsonsrt-${{ matrix.os }}-${{ matrix.arch}}
-          path: jsonsrt*
+          path: |
+            ../jsonsrt
+            ../jsonsrt.exe
