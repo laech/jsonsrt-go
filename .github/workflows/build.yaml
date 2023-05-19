@@ -30,6 +30,4 @@ jobs:
         with:
           if-no-files-found: error
           name: jsonsrt-${{ matrix.os }}-${{ matrix.arch}}
-          path: |
-            jsonsrt
-            jsonsrt.exe
+          path: jsonsrt*
