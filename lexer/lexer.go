@@ -128,7 +128,7 @@ func (lexer *Lexer) Next() (Token, error) {
 					return Token{Value, val, offset}, nil
 				}
 			}
-			return Token{}, fmt.Errorf("expected end of string quote, but got EOF")
+			return Token{}, fmt.Errorf("expecting end of string quote, got EOF")
 		}
 
 		for i := lexer.offset + 1; i < len(lexer.data); i++ {
