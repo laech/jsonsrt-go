@@ -23,24 +23,37 @@ var tests = []struct {
 	input  []byte
 	output jsonish.Node
 }{
-	{[]byte("\"\""), jsonish.Node{Type: jsonish.Value, Value: []byte("\"\"")}},
-	{[]byte(" \"hello\""), jsonish.Node{Type: jsonish.Value, Value: []byte("\"hello\"")}},
-	{[]byte("123"), jsonish.Node{Type: jsonish.Value, Value: []byte("123")}},
-	{[]byte("{}"), jsonish.Node{Type: jsonish.Object, Object: []jsonish.Member{}}},
-	{[]byte("[]"), jsonish.Node{Type: jsonish.Array, Array: []jsonish.Node{}}},
+	{[]byte("\"\""), jsonish.Value{[]byte("\"\"")}},
+	{[]byte(" \"hello\""), jsonish.Value{[]byte("\"hello\"")}},
+	{[]byte("123"), jsonish.Value{[]byte("123")}},
+	{[]byte("{}"), jsonish.Object{[]jsonish.Member{}, false}},
+	{[]byte("{}"), jsonish.Object{[]jsonish.Member{}, false}},
+	{[]byte("[]"), jsonish.Array{[]jsonish.Node{}, false}},
 
-	{[]byte("{\"a\": 1}"), jsonish.Node{
-		Type: jsonish.Object,
-		Object: []jsonish.Member{
-			{[]byte("\"a\""), jsonish.Node{Type: jsonish.Value, Value: []byte("1")}},
+	{[]byte("{\"a\": 1}"), jsonish.Object{
+		[]jsonish.Member{
+			{[]byte("\"a\""), jsonish.Value{[]byte("1")}},
 		},
+		false,
 	}},
 
-	{[]byte("[true, null]"), jsonish.Node{
-		Type: jsonish.Array,
-		Array: []jsonish.Node{
-			{Type: jsonish.Value, Value: []byte("true")},
-			{Type: jsonish.Value, Value: []byte("null")},
+	{[]byte("{\"a b\": null,}"), jsonish.Object{
+		[]jsonish.Member{
+			{[]byte("\"a b\""), jsonish.Value{[]byte("null")}},
 		},
+		true,
+	}},
+
+	{[]byte("[true, null]"), jsonish.Array{
+		[]jsonish.Node{
+			jsonish.Value{[]byte("true")},
+			jsonish.Value{[]byte("null")},
+		},
+		false,
+	}},
+
+	{[]byte("[0,]"), jsonish.Array{
+		[]jsonish.Node{jsonish.Value{[]byte("0")}},
+		true,
 	}},
 }

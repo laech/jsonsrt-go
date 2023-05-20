@@ -1,37 +1,34 @@
 package jsonish
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"jsonsrt/lexer"
 )
 
-type NodeType int
-
-const (
-	Object NodeType = iota
-	Array
-	Value
-)
-
-type Node struct {
-	Type   NodeType
-	Array  []Node
-	Object []Member
-	Value  []byte
+type Node interface {
+	fmt.Stringer
 }
 
-func (node Node) String() string {
-	switch node.Type {
-	case Object:
-		return fmt.Sprintf("Object%s", node.Object)
-	case Array:
-		return fmt.Sprintf("Array%s", node.Array)
-	case Value:
-		return fmt.Sprintf("Value[%s]", node.Value)
-	default:
-		return "Unknown"
-	}
+func nodeString(node Node) string {
+	buf := bytes.Buffer{}
+	print(node, &buf, []byte("  "), 0, false)
+	return buf.String()
+}
+
+type Value struct {
+	Value []byte
+}
+
+type Array struct {
+	Value       []Node
+	TrailingSep bool
+}
+
+type Object struct {
+	Value       []Member
+	TrailingSep bool
 }
 
 type Member struct {
@@ -39,8 +36,16 @@ type Member struct {
 	Value Node
 }
 
-func (m Member) String() string {
-	return fmt.Sprintf("(%s: %s)", string(m.Name), m.Value)
+func (val Value) String() string {
+	return nodeString(val)
+}
+
+func (arr Array) String() string {
+	return nodeString(arr)
+}
+
+func (obj Object) String() string {
+	return nodeString(obj)
 }
 
 func Parse(data []byte) (Node, error) {
@@ -53,7 +58,7 @@ func Parse(data []byte) (Node, error) {
 
 	token, err := lexer.Next()
 	if err != io.EOF {
-		return Node{}, fmt.Errorf("expecting EOF at offset %d", token.Offset)
+		return nil, fmt.Errorf("expecting EOF at offset %d", token.Offset)
 	}
 
 	return node, nil
@@ -62,7 +67,7 @@ func Parse(data []byte) (Node, error) {
 func parseNext(lex *lexer.Lexer) (Node, error) {
 	token, err := lex.Next()
 	if err != nil {
-		return Node{}, err
+		return nil, err
 	}
 	return parseCurrent(lex, token)
 }
@@ -74,84 +79,84 @@ func parseCurrent(lex *lexer.Lexer, token lexer.Token) (Node, error) {
 	case lexer.BeginArray:
 		return parseArray(lex)
 	case lexer.Value:
-		return Node{Type: Value, Value: token.Value}, nil
+		return Value{token.Value}, nil
 	default:
-		return Node{}, fmt.Errorf("unexpected token at offset %d", token.Offset)
+		return nil, fmt.Errorf("unexpected token at offset %d", token.Offset)
 	}
 }
 
 func parseArray(lex *lexer.Lexer) (Node, error) {
-	array := make([]Node, 0)
-	for {
+	nodes := make([]Node, 0)
+	for i := 0; ; i++ {
 
 		token, err := lex.Next()
 		if err != nil {
-			return Node{}, nil
+			return nil, nil
 		}
 		if token.Type == lexer.EndArray {
-			return Node{Type: Array, Array: array}, nil
+			return Array{nodes, i > 0}, nil
 		}
 
 		value, err := parseCurrent(lex, token)
 		if err != nil {
-			return Node{}, err
+			return nil, err
 		}
 
-		array = append(array, value)
+		nodes = append(nodes, value)
 
 		token, err = lex.Next()
 		if err != nil {
-			return Node{}, err
+			return nil, err
 		}
 		if token.Type == lexer.EndArray {
-			return Node{Type: Array, Array: array}, nil
+			return Array{nodes, false}, nil
 		}
 		if token.Type != lexer.ValueSeparator {
-			return Node{}, fmt.Errorf("expecting value separator at offset %d", token.Offset)
+			return nil, fmt.Errorf("expecting value separator at offset %d", token.Offset)
 		}
 	}
 }
 
 func parseObject(lex *lexer.Lexer) (Node, error) {
-	object := make([]Member, 0)
-	for {
+	members := make([]Member, 0)
+	for i := 0; ; i++ {
 		token, err := lex.Next()
 		if err != nil {
-			return Node{}, err
+			return nil, err
 		}
 		if token.Type == lexer.EndObject {
-			return Node{Type: Object, Object: object}, nil
+			return Object{members, i > 0}, nil
 		}
 
 		if token.Type != lexer.Value {
-			return Node{}, fmt.Errorf("expected member name at offset %d", token.Offset)
+			return nil, fmt.Errorf("expecting member name at offset %d", token.Offset)
 		}
 		name := token.Value
 
 		token, err = lex.Next()
 		if err != nil {
-			return Node{}, err
+			return nil, err
 		}
 		if token.Type != lexer.NameSeparator {
-			return Node{}, fmt.Errorf("expecting name separator at offset %d", token.Offset)
+			return nil, fmt.Errorf("expecting name separator at offset %d", token.Offset)
 		}
 
 		value, err := parseNext(lex)
 		if err != nil {
-			return Node{}, err
+			return nil, err
 		}
 
-		object = append(object, Member{name, value})
+		members = append(members, Member{name, value})
 
 		token, err = lex.Next()
 		if err != nil {
-			return Node{}, err
+			return nil, err
 		}
 		if token.Type == lexer.EndObject {
-			return Node{Type: Object, Object: object}, nil
+			return Object{members, false}, nil
 		}
 		if token.Type != lexer.ValueSeparator {
-			return Node{}, fmt.Errorf("expecting value separator at offset %d", token.Offset)
+			return nil, fmt.Errorf("expecting value separator at offset %d", token.Offset)
 		}
 	}
 }
