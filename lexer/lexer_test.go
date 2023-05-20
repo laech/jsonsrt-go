@@ -1,6 +1,9 @@
 package lexer_test
 
 import (
+	"bufio"
+	"bytes"
+	"io"
 	"jsonsrt/lexer"
 	"reflect"
 	"testing"
@@ -8,8 +11,7 @@ import (
 
 func TestLexer(t *testing.T) {
 	for _, test := range tests {
-		lexer := lexer.New(test.input)
-		tokens, err := lexer.GetAll()
+		tokens, err := readAllTokens(test.input)
 		if err != nil {
 			t.Fatalf("Lexer failed: %s", err)
 		}
@@ -17,6 +19,21 @@ func TestLexer(t *testing.T) {
 			t.Fatalf("\nexpected: %s\n     got: %s\n   input: %s",
 				test.output, tokens, string(test.input))
 		}
+	}
+}
+
+func readAllTokens(buf []byte) ([]lexer.Token, error) {
+	lex := lexer.New(*bufio.NewReader(bytes.NewBuffer(buf)))
+	tokens := make([]lexer.Token, 0)
+	for {
+		token, err := lex.Next()
+		if err == io.EOF {
+			return tokens, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		tokens = append(tokens, token)
 	}
 }
 

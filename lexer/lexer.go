@@ -1,10 +1,11 @@
 package lexer
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"unicode"
-	"unicode/utf8"
 )
 
 type TokenType byte
@@ -53,77 +54,85 @@ func (token Token) String() string {
 }
 
 type Lexer struct {
-	data   []byte
+	reader bufio.Reader
+	buf    bytes.Buffer
 	offset int
 }
 
-func New(data []byte) Lexer {
-	return Lexer{
-		data:   data,
-		offset: 0,
-	}
-}
-
-func (lexer *Lexer) GetAll() ([]Token, error) {
-	tokens := make([]Token, 0)
-	for lexer.offset < len(lexer.data) {
-		token, err := lexer.Next()
-		if err != nil {
-			return nil, err
-		}
-		tokens = append(tokens, token)
-	}
-	return tokens, nil
+func New(reader bufio.Reader) Lexer {
+	return Lexer{reader: reader}
 }
 
 func (lexer *Lexer) Next() (Token, error) {
-	for lexer.offset < len(lexer.data) {
-
-		r, size := utf8.DecodeRune(lexer.data[lexer.offset:])
-		if unicode.IsSpace(r) {
-			lexer.offset += size
-			continue
+	buf := &lexer.buf
+	reader := &lexer.reader
+	for {
+		r, _, err := reader.ReadRune()
+		if err != nil {
+			return Token{}, err
 		}
-
-		b := lexer.data[lexer.offset]
-		switch b {
-		case '{', '}', '[', ']', ',', ':':
-			offset := lexer.offset
-			lexer.offset++
-			return Token{TokenType(b), []byte{b}, offset}, nil
-		}
-
-		if b == '"' {
-			escape := false
-			for i := lexer.offset + 1; i < len(lexer.data); i++ {
-				if lexer.data[i] == '\\' {
-					escape = !escape
-				} else if !escape && lexer.data[i] == '"' {
-					val := lexer.data[lexer.offset : i+1]
-					offset := lexer.offset
-					lexer.offset = i + 1
-					return Token{Value, val, offset}, nil
-				}
+		if !unicode.IsSpace(r) {
+			if err := reader.UnreadRune(); err != nil {
+				return Token{}, err
 			}
-			return Token{}, fmt.Errorf("expecting end of string quote, got EOF")
+			break
 		}
+		lexer.offset++
+	}
 
-		for i := lexer.offset + 1; i < len(lexer.data); i++ {
-			switch lexer.data[i] {
-			case '{', '}', '[', ']', ',', ':':
-				val := lexer.data[lexer.offset:i]
-				offset := lexer.offset
-				lexer.offset = i
-				return Token{Value, val, offset}, nil
+	b, err := reader.ReadByte()
+	if err != nil {
+		return Token{}, err
+	}
+
+	switch b {
+	case '{', '}', '[', ']', ',', ':':
+		offset := lexer.offset
+		lexer.offset++
+		return Token{TokenType(b), []byte{b}, offset}, nil
+	}
+
+	buf.Reset()
+	buf.WriteByte(b)
+
+	if b == '"' {
+		escape := false
+		for {
+			b, err = reader.ReadByte()
+			if err != nil {
+				return Token{}, err
 			}
-			if i == len(lexer.data)-1 {
-				val := lexer.data[lexer.offset:]
+			buf.WriteByte(b)
+
+			if b == '\\' {
+				escape = !escape
+			} else if !escape && b == '"' {
 				offset := lexer.offset
-				lexer.offset = len(lexer.data)
-				return Token{Value, val, offset}, nil
+				lexer.offset += buf.Len()
+				return Token{Value, bytes.Clone(buf.Bytes()), offset}, nil
 			}
 		}
 	}
 
-	return Token{}, io.EOF
+	for {
+		b, err = reader.ReadByte()
+		if err == io.EOF {
+			offset := lexer.offset
+			lexer.offset += buf.Len()
+			return Token{Value, bytes.Clone(buf.Bytes()), offset}, nil
+		}
+		if err != nil {
+			return Token{}, err
+		}
+		switch b {
+		case '{', '}', '[', ']', ',', ':':
+			if err := reader.UnreadByte(); err != nil {
+				return Token{}, err
+			}
+			offset := lexer.offset
+			lexer.offset += buf.Len()
+			return Token{Value, bytes.Clone(buf.Bytes()), offset}, nil
+		}
+		buf.WriteByte(b)
+	}
 }
