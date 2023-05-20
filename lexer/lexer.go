@@ -55,8 +55,6 @@ func (token Token) String() string {
 type Lexer struct {
 	data   []byte
 	offset int
-	peeked bool
-	next   Token
 }
 
 func New(data []byte) Lexer {
@@ -78,28 +76,7 @@ func (lexer *Lexer) GetAll() ([]Token, error) {
 	return tokens, nil
 }
 
-func (lexer *Lexer) Peek() (Token, error) {
-	if lexer.peeked {
-		return lexer.next, nil
-	}
-
-	next, err := lexer.Next()
-	if err != nil {
-		return Token{}, err
-	}
-	lexer.peeked = true
-	lexer.next = next
-	return next, nil
-}
-
 func (lexer *Lexer) Next() (Token, error) {
-	if lexer.peeked {
-		next := lexer.next
-		lexer.next = Token{}
-		lexer.peeked = false
-		return next, nil
-	}
-
 	for lexer.offset < len(lexer.data) {
 
 		r, size := utf8.DecodeRune(lexer.data[lexer.offset:])
