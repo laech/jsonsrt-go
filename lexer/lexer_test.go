@@ -23,7 +23,7 @@ func TestLexer(t *testing.T) {
 }
 
 func readAllTokens(buf []byte) ([]lexer.Token, error) {
-	lex := lexer.New(*bufio.NewReader(bytes.NewBuffer(buf)))
+	lex := lexer.New(bufio.NewReader(bytes.NewBuffer(buf)))
 	tokens := make([]lexer.Token, 0)
 	for {
 		token, err := lex.Next()
@@ -33,7 +33,7 @@ func readAllTokens(buf []byte) ([]lexer.Token, error) {
 		if err != nil {
 			return nil, err
 		}
-		tokens = append(tokens, token)
+		tokens = append(tokens, *token)
 	}
 }
 

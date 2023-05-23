@@ -54,26 +54,29 @@ func (token Token) String() string {
 }
 
 type Lexer struct {
-	reader bufio.Reader
-	buf    bytes.Buffer
+	reader *bufio.Reader
+	buf    *bytes.Buffer
 	offset int
 }
 
-func New(reader bufio.Reader) Lexer {
-	return Lexer{reader: reader}
+func New(reader *bufio.Reader) *Lexer {
+	return &Lexer{
+		reader: reader,
+		buf:    new(bytes.Buffer),
+	}
 }
 
-func (lexer *Lexer) Next() (Token, error) {
-	buf := &lexer.buf
-	reader := &lexer.reader
+func (lexer *Lexer) Next() (*Token, error) {
+	buf := lexer.buf
+	reader := lexer.reader
 	for {
 		r, _, err := reader.ReadRune()
 		if err != nil {
-			return Token{}, err
+			return nil, err
 		}
 		if !unicode.IsSpace(r) {
 			if err := reader.UnreadRune(); err != nil {
-				return Token{}, err
+				return nil, err
 			}
 			break
 		}
@@ -82,14 +85,14 @@ func (lexer *Lexer) Next() (Token, error) {
 
 	b, err := reader.ReadByte()
 	if err != nil {
-		return Token{}, err
+		return nil, err
 	}
 
 	switch b {
 	case '{', '}', '[', ']', ',', ':':
 		offset := lexer.offset
 		lexer.offset++
-		return Token{TokenType(b), []byte{b}, offset}, nil
+		return &Token{TokenType(b), []byte{b}, offset}, nil
 	}
 
 	buf.Reset()
@@ -100,7 +103,7 @@ func (lexer *Lexer) Next() (Token, error) {
 		for {
 			b, err = reader.ReadByte()
 			if err != nil {
-				return Token{}, err
+				return nil, err
 			}
 			buf.WriteByte(b)
 
@@ -109,7 +112,7 @@ func (lexer *Lexer) Next() (Token, error) {
 			} else if !escape && b == '"' {
 				offset := lexer.offset
 				lexer.offset += buf.Len()
-				return Token{Value, bytes.Clone(buf.Bytes()), offset}, nil
+				return &Token{Value, bytes.Clone(buf.Bytes()), offset}, nil
 			}
 		}
 	}
@@ -119,19 +122,19 @@ func (lexer *Lexer) Next() (Token, error) {
 		if err == io.EOF {
 			offset := lexer.offset
 			lexer.offset += buf.Len()
-			return Token{Value, bytes.Clone(buf.Bytes()), offset}, nil
+			return &Token{Value, bytes.Clone(buf.Bytes()), offset}, nil
 		}
 		if err != nil {
-			return Token{}, err
+			return nil, err
 		}
 		switch b {
 		case '{', '}', '[', ']', ',', ':':
 			if err := reader.UnreadByte(); err != nil {
-				return Token{}, err
+				return nil, err
 			}
 			offset := lexer.offset
 			lexer.offset += buf.Len()
-			return Token{Value, bytes.Clone(buf.Bytes()), offset}, nil
+			return &Token{Value, bytes.Clone(buf.Bytes()), offset}, nil
 		}
 		buf.WriteByte(b)
 	}
