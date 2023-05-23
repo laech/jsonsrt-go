@@ -67,23 +67,11 @@ func New(reader *bufio.Reader) *Lexer {
 }
 
 func (lexer *Lexer) Next() (*Token, error) {
-	buf := lexer.buf
-	reader := lexer.reader
-	for {
-		r, _, err := reader.ReadRune()
-		if err != nil {
-			return nil, err
-		}
-		if !unicode.IsSpace(r) {
-			if err := reader.UnreadRune(); err != nil {
-				return nil, err
-			}
-			break
-		}
-		lexer.offset++
+	if err := lexer.skipSpaces(); err != nil {
+		return nil, err
 	}
 
-	b, err := reader.ReadByte()
+	b, err := lexer.reader.ReadByte()
 	if err != nil {
 		return nil, err
 	}
@@ -95,47 +83,70 @@ func (lexer *Lexer) Next() (*Token, error) {
 		return &Token{TokenType(b), []byte{b}, offset}, nil
 	}
 
-	buf.Reset()
-	buf.WriteByte(b)
-
+	lexer.buf.Reset()
+	lexer.buf.WriteByte(b)
 	if b == '"' {
-		escape := false
-		for {
-			b, err = reader.ReadByte()
-			if err != nil {
-				return nil, err
-			}
-			buf.WriteByte(b)
+		return lexer.readString()
+	} else {
+		return lexer.readValue()
+	}
+}
 
-			if b == '\\' {
-				escape = !escape
-			} else if !escape && b == '"' {
-				offset := lexer.offset
-				lexer.offset += buf.Len()
-				return &Token{Value, bytes.Clone(buf.Bytes()), offset}, nil
+func (lexer *Lexer) skipSpaces() error {
+	for {
+		r, _, err := lexer.reader.ReadRune()
+		if err != nil {
+			return err
+		}
+		if !unicode.IsSpace(r) {
+			if err := lexer.reader.UnreadRune(); err != nil {
+				return err
 			}
+			return nil
+		}
+		lexer.offset++
+	}
+}
+
+func (lexer *Lexer) readString() (*Token, error) {
+	escape := false
+	for {
+		b, err := lexer.reader.ReadByte()
+		if err != nil {
+			return nil, err
+		}
+		lexer.buf.WriteByte(b)
+
+		if b == '\\' {
+			escape = !escape
+		} else if !escape && b == '"' {
+			offset := lexer.offset
+			lexer.offset += lexer.buf.Len()
+			return &Token{Value, bytes.Clone(lexer.buf.Bytes()), offset}, nil
 		}
 	}
+}
 
+func (lexer *Lexer) readValue() (*Token, error) {
 	for {
-		b, err = reader.ReadByte()
+		b, err := lexer.reader.ReadByte()
 		if err == io.EOF {
 			offset := lexer.offset
-			lexer.offset += buf.Len()
-			return &Token{Value, bytes.Clone(buf.Bytes()), offset}, nil
+			lexer.offset += lexer.buf.Len()
+			return &Token{Value, bytes.Clone(lexer.buf.Bytes()), offset}, nil
 		}
 		if err != nil {
 			return nil, err
 		}
 		switch b {
 		case '{', '}', '[', ']', ',', ':':
-			if err := reader.UnreadByte(); err != nil {
+			if err := lexer.reader.UnreadByte(); err != nil {
 				return nil, err
 			}
 			offset := lexer.offset
-			lexer.offset += buf.Len()
-			return &Token{Value, bytes.Clone(buf.Bytes()), offset}, nil
+			lexer.offset += lexer.buf.Len()
+			return &Token{Value, bytes.Clone(lexer.buf.Bytes()), offset}, nil
 		}
-		buf.WriteByte(b)
+		lexer.buf.WriteByte(b)
 	}
 }
