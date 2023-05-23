@@ -55,14 +55,14 @@ func (token Token) String() string {
 
 type Lexer struct {
 	reader *bufio.Reader
-	buf    *bytes.Buffer
+	buffer *bytes.Buffer
 	offset int
 }
 
 func New(reader io.Reader) *Lexer {
 	return &Lexer{
 		reader: bufio.NewReader(reader),
-		buf:    new(bytes.Buffer),
+		buffer: new(bytes.Buffer),
 	}
 }
 
@@ -83,8 +83,8 @@ func (lexer *Lexer) Next() (*Token, error) {
 		return &Token{TokenType(b), []byte{b}, offset}, nil
 	}
 
-	lexer.buf.Reset()
-	lexer.buf.WriteByte(b)
+	lexer.buffer.Reset()
+	lexer.buffer.WriteByte(b)
 	if b == '"' {
 		return lexer.readString()
 	} else {
@@ -115,14 +115,14 @@ func (lexer *Lexer) readString() (*Token, error) {
 		if err != nil {
 			return nil, err
 		}
-		lexer.buf.WriteByte(b)
+		lexer.buffer.WriteByte(b)
 
 		if b == '\\' {
 			escape = !escape
 		} else if !escape && b == '"' {
 			offset := lexer.offset
-			lexer.offset += lexer.buf.Len()
-			return &Token{Value, bytes.Clone(lexer.buf.Bytes()), offset}, nil
+			lexer.offset += lexer.buffer.Len()
+			return &Token{Value, bytes.Clone(lexer.buffer.Bytes()), offset}, nil
 		}
 	}
 }
@@ -132,8 +132,8 @@ func (lexer *Lexer) readValue() (*Token, error) {
 		b, err := lexer.reader.ReadByte()
 		if err == io.EOF {
 			offset := lexer.offset
-			lexer.offset += lexer.buf.Len()
-			return &Token{Value, bytes.Clone(lexer.buf.Bytes()), offset}, nil
+			lexer.offset += lexer.buffer.Len()
+			return &Token{Value, bytes.Clone(lexer.buffer.Bytes()), offset}, nil
 		}
 		if err != nil {
 			return nil, err
@@ -144,9 +144,9 @@ func (lexer *Lexer) readValue() (*Token, error) {
 				return nil, err
 			}
 			offset := lexer.offset
-			lexer.offset += lexer.buf.Len()
-			return &Token{Value, bytes.Clone(lexer.buf.Bytes()), offset}, nil
+			lexer.offset += lexer.buffer.Len()
+			return &Token{Value, bytes.Clone(lexer.buffer.Bytes()), offset}, nil
 		}
-		lexer.buf.WriteByte(b)
+		lexer.buffer.WriteByte(b)
 	}
 }
