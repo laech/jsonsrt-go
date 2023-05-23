@@ -59,9 +59,9 @@ type Lexer struct {
 	offset int
 }
 
-func New(reader *bufio.Reader) *Lexer {
+func New(reader io.Reader) *Lexer {
 	return &Lexer{
-		reader: reader,
+		reader: bufio.NewReader(reader),
 		buf:    new(bytes.Buffer),
 	}
 }

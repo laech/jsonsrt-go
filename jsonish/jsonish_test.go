@@ -1,6 +1,7 @@
 package jsonish_test
 
 import (
+	"bytes"
 	"jsonsrt/jsonish"
 	"reflect"
 	"testing"
@@ -8,7 +9,7 @@ import (
 
 func TestParse(t *testing.T) {
 	for _, test := range tests {
-		node, err := jsonish.Parse(test.input)
+		node, err := jsonish.Parse(bytes.NewBuffer(test.input))
 		if err != nil {
 			t.Fatalf("\nfailed: %s\n input: %s", err, string(test.input))
 		}

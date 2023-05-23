@@ -48,15 +48,14 @@ func (obj Object) String() string {
 	return nodeString(obj)
 }
 
-func Parse(data []byte) (Node, error) {
-	lexer := lexer.New(data)
-
-	node, err := parseNext(&lexer)
+func Parse(reader io.Reader) (Node, error) {
+	lex := lexer.New(reader)
+	node, err := parseNext(lex)
 	if err != nil {
 		return node, err
 	}
 
-	token, err := lexer.Next()
+	token, err := lex.Next()
 	if err != io.EOF {
 		return nil, fmt.Errorf("expecting EOF at offset %d", token.Offset)
 	}
@@ -72,7 +71,7 @@ func parseNext(lex *lexer.Lexer) (Node, error) {
 	return parseCurrent(lex, token)
 }
 
-func parseCurrent(lex *lexer.Lexer, token lexer.Token) (Node, error) {
+func parseCurrent(lex *lexer.Lexer, token *lexer.Token) (Node, error) {
 	switch token.Type {
 	case lexer.BeginObject:
 		return parseObject(lex)
