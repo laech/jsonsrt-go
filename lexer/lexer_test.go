@@ -50,6 +50,7 @@ var tests = []struct {
 	{[]byte("\"\""), []lexer.Token{value(0, []byte("\"\""))}},
 	{[]byte(" \"hello\""), []lexer.Token{value(1, []byte("\"hello\""))}},
 	{[]byte("123"), []lexer.Token{value(0, []byte("123"))}},
+	{[]byte("123 "), []lexer.Token{value(0, []byte("123"))}},
 	{[]byte("{}"), []lexer.Token{beginObject(0), endObject(1)}},
 	{[]byte("[]"), []lexer.Token{beginArray(0), endArray(1)}},
 

@@ -94,12 +94,12 @@ func (lexer *Lexer) Next() (*Token, error) {
 
 func (lexer *Lexer) skipSpaces() error {
 	for {
-		r, _, err := lexer.reader.ReadRune()
+		b, err := lexer.reader.ReadByte()
 		if err != nil {
 			return err
 		}
-		if !unicode.IsSpace(r) {
-			if err := lexer.reader.UnreadRune(); err != nil {
+		if !unicode.IsSpace(rune(b)) {
+			if err := lexer.reader.UnreadByte(); err != nil {
 				return err
 			}
 			return nil
@@ -138,8 +138,13 @@ func (lexer *Lexer) readValue() (*Token, error) {
 		if err != nil {
 			return nil, err
 		}
-		switch b {
-		case '{', '}', '[', ']', ',', ':':
+		if unicode.IsSpace(rune(b)) ||
+			b == '{' ||
+			b == '}' ||
+			b == '[' ||
+			b == ']' ||
+			b == ',' ||
+			b == ':' {
 			if err := lexer.reader.UnreadByte(); err != nil {
 				return nil, err
 			}
