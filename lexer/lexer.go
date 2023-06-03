@@ -17,27 +17,6 @@ const (
 	Value          TokenType = "Value"
 )
 
-func (t TokenType) String() string {
-	switch t {
-	case BeginObject:
-		return "BeginObject"
-	case EndObject:
-		return "EndObject"
-	case BeginArray:
-		return "BeginArray"
-	case EndArray:
-		return "EndArray"
-	case NameSeparator:
-		return "NameSeparator"
-	case ValueSeparator:
-		return "ValueSeparator"
-	case Value:
-		return "Value"
-	default:
-		return "Unknown"
-	}
-}
-
 type Token struct {
 	Type   TokenType
 	Value  string
@@ -100,7 +79,7 @@ func (lexer *Lexer) readString() (*Token, error) {
 			escape = false
 		}
 	}
-	return nil, io.EOF
+	return nil, io.ErrUnexpectedEOF
 }
 
 func (lexer *Lexer) readStringish() *Token {
