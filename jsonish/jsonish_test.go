@@ -1,7 +1,6 @@
 package jsonish_test
 
 import (
-	"bytes"
 	"jsonsrt/jsonish"
 	"reflect"
 	"testing"
@@ -9,7 +8,7 @@ import (
 
 func TestParse(t *testing.T) {
 	for _, test := range tests {
-		node, err := jsonish.Parse(bytes.NewBuffer(test.input))
+		node, err := jsonish.Parse(test.input)
 		if err != nil {
 			t.Fatalf("\nfailed: %s\n input: %s", err, string(test.input))
 		}
@@ -21,40 +20,40 @@ func TestParse(t *testing.T) {
 }
 
 var tests = []struct {
-	input  []byte
+	input  string
 	output jsonish.Node
 }{
-	{[]byte("\"\""), jsonish.Value{[]byte("\"\"")}},
-	{[]byte(" \"hello\""), jsonish.Value{[]byte("\"hello\"")}},
-	{[]byte("123"), jsonish.Value{[]byte("123")}},
-	{[]byte("{}"), jsonish.Object{[]jsonish.Member{}, false}},
-	{[]byte("{}"), jsonish.Object{[]jsonish.Member{}, false}},
-	{[]byte("[]"), jsonish.Array{[]jsonish.Node{}, false}},
+	{"\"\"", jsonish.Value{"\"\""}},
+	{" \"hello\"", jsonish.Value{"\"hello\""}},
+	{"123", jsonish.Value{"123"}},
+	{"{}", jsonish.Object{[]jsonish.Member{}, false}},
+	{"{}", jsonish.Object{[]jsonish.Member{}, false}},
+	{"[]", jsonish.Array{[]jsonish.Node{}, false}},
 
-	{[]byte("{\"a\": 1}"), jsonish.Object{
+	{"{\"a\": 1}", jsonish.Object{
 		[]jsonish.Member{
-			{[]byte("\"a\""), jsonish.Value{[]byte("1")}},
+			{"\"a\"", jsonish.Value{"1"}},
 		},
 		false,
 	}},
 
-	{[]byte("{\"a b\": null,}"), jsonish.Object{
+	{"{\"a b\": null,}", jsonish.Object{
 		[]jsonish.Member{
-			{[]byte("\"a b\""), jsonish.Value{[]byte("null")}},
+			{"\"a b\"", jsonish.Value{"null"}},
 		},
 		true,
 	}},
 
-	{[]byte("[true, null]"), jsonish.Array{
+	{"[true, null]", jsonish.Array{
 		[]jsonish.Node{
-			jsonish.Value{[]byte("true")},
-			jsonish.Value{[]byte("null")},
+			jsonish.Value{"true"},
+			jsonish.Value{"null"},
 		},
 		false,
 	}},
 
-	{[]byte("[0,]"), jsonish.Array{
-		[]jsonish.Node{jsonish.Value{[]byte("0")}},
+	{"[0,]", jsonish.Array{
+		[]jsonish.Node{jsonish.Value{"0"}},
 		true,
 	}},
 }

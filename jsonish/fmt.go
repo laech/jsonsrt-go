@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-func print(node Node, writer io.Writer, indent []byte, level int, applyInitalIndent bool) error {
+func print(node Node, writer io.StringWriter, indent string, level int, applyInitalIndent bool) error {
 	if applyInitalIndent {
 		if err := printIndent(writer, indent, level); err != nil {
 			return err
@@ -14,7 +14,7 @@ func print(node Node, writer io.Writer, indent []byte, level int, applyInitalInd
 	}
 	switch t := node.(type) {
 	case Value:
-		if _, err := writer.Write(t.Value); err != nil {
+		if _, err := writer.WriteString(t.Value); err != nil {
 			return err
 		}
 	case Array:
@@ -31,13 +31,13 @@ func print(node Node, writer io.Writer, indent []byte, level int, applyInitalInd
 	return nil
 }
 
-func printArray(arr Array, writer io.Writer, indent []byte, level int) error {
-	if _, err := writer.Write([]byte("[")); err != nil {
+func printArray(arr Array, writer io.StringWriter, indent string, level int) error {
+	if _, err := writer.WriteString("["); err != nil {
 		return err
 	}
 
 	if len(arr.Value) > 0 {
-		if _, err := writer.Write([]byte("\n")); err != nil {
+		if _, err := writer.WriteString("\n"); err != nil {
 			return err
 		}
 	}
@@ -47,20 +47,20 @@ func printArray(arr Array, writer io.Writer, indent []byte, level int) error {
 			return err
 		}
 		if i < len(arr.Value)-1 {
-			if _, err := writer.Write([]byte(",")); err != nil {
+			if _, err := writer.WriteString(","); err != nil {
 				return err
 			}
 		}
 	}
 
 	if arr.TrailingSep {
-		if _, err := writer.Write([]byte(",")); err != nil {
+		if _, err := writer.WriteString(","); err != nil {
 			return err
 		}
 	}
 
 	if len(arr.Value) > 0 {
-		if _, err := writer.Write([]byte("\n")); err != nil {
+		if _, err := writer.WriteString("\n"); err != nil {
 			return err
 		}
 		if err := printIndent(writer, indent, level); err != nil {
@@ -68,20 +68,20 @@ func printArray(arr Array, writer io.Writer, indent []byte, level int) error {
 		}
 	}
 
-	if _, err := writer.Write([]byte("]")); err != nil {
+	if _, err := writer.WriteString("]"); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func printObject(obj Object, writer io.Writer, indent []byte, level int) error {
-	if _, err := writer.Write([]byte("{")); err != nil {
+func printObject(obj Object, writer io.StringWriter, indent string, level int) error {
+	if _, err := writer.WriteString("{"); err != nil {
 		return err
 	}
 
 	if len(obj.Value) > 0 {
-		if _, err := writer.Write([]byte("\n")); err != nil {
+		if _, err := writer.WriteString("\n"); err != nil {
 			return err
 		}
 	}
@@ -90,30 +90,30 @@ func printObject(obj Object, writer io.Writer, indent []byte, level int) error {
 		if err := printIndent(writer, indent, level+1); err != nil {
 			return err
 		}
-		if _, err := writer.Write(child.Name); err != nil {
+		if _, err := writer.WriteString(child.Name); err != nil {
 			return err
 		}
-		if _, err := writer.Write([]byte(": ")); err != nil {
+		if _, err := writer.WriteString(": "); err != nil {
 			return err
 		}
 		if err := print(child.Value, writer, indent, level+1, false); err != nil {
 			return err
 		}
 		if i < len(obj.Value)-1 {
-			if _, err := writer.Write([]byte(",")); err != nil {
+			if _, err := writer.WriteString(","); err != nil {
 				return err
 			}
 		}
 	}
 
 	if obj.TrailingSep {
-		if _, err := writer.Write([]byte(",")); err != nil {
+		if _, err := writer.WriteString(","); err != nil {
 			return err
 		}
 	}
 
 	if len(obj.Value) > 0 {
-		if _, err := writer.Write([]byte("\n")); err != nil {
+		if _, err := writer.WriteString("\n"); err != nil {
 			return err
 		}
 		if err := printIndent(writer, indent, level); err != nil {
@@ -121,16 +121,16 @@ func printObject(obj Object, writer io.Writer, indent []byte, level int) error {
 		}
 	}
 
-	if _, err := writer.Write([]byte("}")); err != nil {
+	if _, err := writer.WriteString("}"); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func printIndent(writer io.Writer, indent []byte, level int) error {
+func printIndent(writer io.StringWriter, indent string, level int) error {
 	for i := 0; i < level; i++ {
-		if _, err := writer.Write(indent); err != nil {
+		if _, err := writer.WriteString(indent); err != nil {
 			return err
 		}
 	}

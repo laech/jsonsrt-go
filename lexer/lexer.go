@@ -1,23 +1,20 @@
 package lexer
 
 import (
-	"bufio"
-	"bytes"
-	"fmt"
 	"io"
 	"unicode"
 )
 
-type TokenType byte
+type TokenType string
 
 const (
-	BeginObject    TokenType = '{'
-	EndObject      TokenType = '}'
-	BeginArray     TokenType = '['
-	EndArray       TokenType = ']'
-	NameSeparator  TokenType = ':'
-	ValueSeparator TokenType = ','
-	Value          TokenType = 'v'
+	BeginObject    TokenType = "{"
+	EndObject      TokenType = "}"
+	BeginArray     TokenType = "["
+	EndArray       TokenType = "]"
+	NameSeparator  TokenType = ":"
+	ValueSeparator TokenType = ","
+	Value          TokenType = "Value"
 )
 
 func (t TokenType) String() string {
@@ -43,104 +40,72 @@ func (t TokenType) String() string {
 
 type Token struct {
 	Type   TokenType
-	Value  []byte
+	Value  string
 	Offset int
 }
 
-func (token Token) String() string {
-	return fmt.Sprintf(
-		"Token{Type: %s, Value: \"%s\", Offset: %d}",
-		token.Type, string(token.Value), token.Offset)
-}
-
 type Lexer struct {
-	reader *bufio.Reader
-	buffer *bytes.Buffer
+	input  string
 	offset int
 }
 
-func New(reader io.Reader) *Lexer {
-	return &Lexer{
-		reader: bufio.NewReader(reader),
-		buffer: new(bytes.Buffer),
-	}
+func New(input string) *Lexer {
+	return &Lexer{input: input}
 }
 
 func (lexer *Lexer) Next() (*Token, error) {
-	if err := lexer.skipSpaces(); err != nil {
-		return nil, err
+	lexer.skipSpaces()
+
+	if lexer.offset >= len(lexer.input) {
+		return nil, io.EOF
 	}
 
-	b, err := lexer.reader.ReadByte()
-	if err != nil {
-		return nil, err
-	}
-
+	b := lexer.input[lexer.offset]
 	switch b {
 	case '{', '}', '[', ']', ',', ':':
-		offset := lexer.offset
 		lexer.offset++
-		return &Token{TokenType(b), []byte{b}, offset}, nil
+		return &Token{TokenType(b), string(b), lexer.offset - 1}, nil
 	}
 
-	lexer.buffer.Reset()
-	lexer.buffer.WriteByte(b)
 	if b == '"' {
 		return lexer.readString()
 	} else {
-		return lexer.readValue()
+		return lexer.readStringish(), nil
 	}
 }
 
-func (lexer *Lexer) skipSpaces() error {
-	for {
-		b, err := lexer.reader.ReadByte()
-		if err != nil {
-			return err
+func (lexer *Lexer) skipSpaces() {
+	for ; lexer.offset < len(lexer.input); lexer.offset++ {
+		if !unicode.IsSpace(rune(lexer.input[lexer.offset])) {
+			return
 		}
-		if !unicode.IsSpace(rune(b)) {
-			if err := lexer.reader.UnreadByte(); err != nil {
-				return err
-			}
-			return nil
-		}
-		lexer.offset++
 	}
 }
 
 func (lexer *Lexer) readString() (*Token, error) {
+	if lexer.input[lexer.offset] != '"' {
+		panic("not at double quote")
+	}
 	escape := false
-	for {
-		b, err := lexer.reader.ReadByte()
-		if err != nil {
-			return nil, err
-		}
-		lexer.buffer.WriteByte(b)
-
+	for i := lexer.offset + 1; i < len(lexer.input); i++ {
+		b := lexer.input[i]
 		if b == '\\' {
 			escape = !escape
 		} else {
 			if !escape && b == '"' {
 				offset := lexer.offset
-				lexer.offset += lexer.buffer.Len()
-				return &Token{Value, bytes.Clone(lexer.buffer.Bytes()), offset}, nil
+				lexer.offset = i + 1
+				return &Token{Value, lexer.input[offset:lexer.offset], offset}, nil
 			}
 			escape = false
 		}
 	}
+	return nil, io.EOF
 }
 
-func (lexer *Lexer) readValue() (*Token, error) {
-	for {
-		b, err := lexer.reader.ReadByte()
-		if err == io.EOF {
-			offset := lexer.offset
-			lexer.offset += lexer.buffer.Len()
-			return &Token{Value, bytes.Clone(lexer.buffer.Bytes()), offset}, nil
-		}
-		if err != nil {
-			return nil, err
-		}
+func (lexer *Lexer) readStringish() *Token {
+	for i := lexer.offset; i < len(lexer.input); i++ {
+		b := lexer.input[i]
 		if unicode.IsSpace(rune(b)) ||
 			b == '{' ||
 			b == '}' ||
@@ -148,13 +113,12 @@ func (lexer *Lexer) readValue() (*Token, error) {
 			b == ']' ||
 			b == ',' ||
 			b == ':' {
-			if err := lexer.reader.UnreadByte(); err != nil {
-				return nil, err
-			}
 			offset := lexer.offset
-			lexer.offset += lexer.buffer.Len()
-			return &Token{Value, bytes.Clone(lexer.buffer.Bytes()), offset}, nil
+			lexer.offset = i
+			return &Token{Value, lexer.input[offset:i], offset}
 		}
-		lexer.buffer.WriteByte(b)
 	}
+	offset := lexer.offset
+	lexer.offset = len(lexer.input)
+	return &Token{Value, lexer.input[offset:], offset}
 }

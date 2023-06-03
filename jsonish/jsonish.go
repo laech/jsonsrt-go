@@ -13,12 +13,12 @@ type Node interface {
 
 func nodeString(node Node) string {
 	buf := bytes.Buffer{}
-	print(node, &buf, []byte("  "), 0, false)
+	print(node, &buf, "  ", 0, false)
 	return buf.String()
 }
 
 type Value struct {
-	Value []byte
+	Value string
 }
 
 type Array struct {
@@ -32,7 +32,7 @@ type Object struct {
 }
 
 type Member struct {
-	Name  []byte
+	Name  string
 	Value Node
 }
 
@@ -48,8 +48,8 @@ func (obj Object) String() string {
 	return nodeString(obj)
 }
 
-func Parse(reader io.Reader) (Node, error) {
-	lex := lexer.New(reader)
+func Parse(input string) (Node, error) {
+	lex := lexer.New(input)
 	node, err := parseNext(lex)
 	if err != nil {
 		return node, err
