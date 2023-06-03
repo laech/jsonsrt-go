@@ -119,10 +119,13 @@ func (lexer *Lexer) readString() (*Token, error) {
 
 		if b == '\\' {
 			escape = !escape
-		} else if !escape && b == '"' {
-			offset := lexer.offset
-			lexer.offset += lexer.buffer.Len()
-			return &Token{Value, bytes.Clone(lexer.buffer.Bytes()), offset}, nil
+		} else {
+			if !escape && b == '"' {
+				offset := lexer.offset
+				lexer.offset += lexer.buffer.Len()
+				return &Token{Value, bytes.Clone(lexer.buffer.Bytes()), offset}, nil
+			}
+			escape = false
 		}
 	}
 }
