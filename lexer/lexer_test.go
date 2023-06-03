@@ -11,14 +11,15 @@ import (
 
 func TestLexer(t *testing.T) {
 	for _, test := range tests {
-		tokens, err := readAllTokens(test.input)
-		if err != nil {
-			t.Fatalf("Lexer failed: %s", err)
-		}
-		if !reflect.DeepEqual(tokens, test.output) {
-			t.Fatalf("\nexpected: %s\n     got: %s\n   input: %s",
-				test.output, tokens, string(test.input))
-		}
+		t.Run(string(test.input), func(t *testing.T) {
+			tokens, err := readAllTokens(test.input)
+			if err != nil {
+				t.Fatalf("Lexer failed: %s", err)
+			}
+			if !reflect.DeepEqual(tokens, test.output) {
+				t.Fatalf("\nexpected: %s\n     got: %s", test.output, tokens)
+			}
+		})
 	}
 }
 
