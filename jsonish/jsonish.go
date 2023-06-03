@@ -1,10 +1,10 @@
 package jsonish
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"jsonsrt/lexer"
+	"strings"
 )
 
 type Node interface {
@@ -12,9 +12,9 @@ type Node interface {
 }
 
 func nodeString(node Node) string {
-	buf := bytes.Buffer{}
-	print(node, &buf, "  ", 0, false)
-	return buf.String()
+	builder := strings.Builder{}
+	print(node, &builder, "  ", 0, false)
+	return builder.String()
 }
 
 type Value struct {

@@ -2,137 +2,82 @@ package jsonish
 
 import (
 	"fmt"
-	"io"
 	"reflect"
+	"strings"
 )
 
-func print(node Node, writer io.StringWriter, indent string, level int, applyInitalIndent bool) error {
+func print(node Node, builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
 	if applyInitalIndent {
-		if err := printIndent(writer, indent, level); err != nil {
-			return err
-		}
+		printIndent(builder, indent, level)
 	}
 	switch t := node.(type) {
 	case Value:
-		if _, err := writer.WriteString(t.Value); err != nil {
-			return err
-		}
+		builder.WriteString(t.Value)
 	case Array:
-		if err := printArray(t, writer, indent, level); err != nil {
-			return nil
-		}
+		printArray(t, builder, indent, level)
 	case Object:
-		if err := printObject(t, writer, indent, level); err != nil {
-			return nil
-		}
+		printObject(t, builder, indent, level)
 	default:
 		panic(fmt.Sprintf("Unknown type: %s", reflect.TypeOf(t)))
 	}
-	return nil
 }
 
-func printArray(arr Array, writer io.StringWriter, indent string, level int) error {
-	if _, err := writer.WriteString("["); err != nil {
-		return err
-	}
-
+func printArray(arr Array, builder *strings.Builder, indent string, level int) {
+	builder.WriteString("[")
 	if len(arr.Value) > 0 {
-		if _, err := writer.WriteString("\n"); err != nil {
-			return err
-		}
+		builder.WriteString("\n")
 	}
 
 	for i, child := range arr.Value {
-		if err := print(child, writer, indent, level+1, true); err != nil {
-			return err
-		}
+		print(child, builder, indent, level+1, true)
 		if i < len(arr.Value)-1 {
-			if _, err := writer.WriteString(","); err != nil {
-				return err
-			}
+			builder.WriteString(",")
 		}
 	}
 
 	if arr.TrailingSep {
-		if _, err := writer.WriteString(","); err != nil {
-			return err
-		}
+		builder.WriteString(",")
 	}
 
 	if len(arr.Value) > 0 {
-		if _, err := writer.WriteString("\n"); err != nil {
-			return err
-		}
-		if err := printIndent(writer, indent, level); err != nil {
-			return err
-		}
+		builder.WriteString("\n")
+		printIndent(builder, indent, level)
 	}
 
-	if _, err := writer.WriteString("]"); err != nil {
-		return err
-	}
-
-	return nil
+	builder.WriteString("]")
 }
 
-func printObject(obj Object, writer io.StringWriter, indent string, level int) error {
-	if _, err := writer.WriteString("{"); err != nil {
-		return err
-	}
+func printObject(obj Object, builder *strings.Builder, indent string, level int) {
+	builder.WriteString("{")
 
 	if len(obj.Value) > 0 {
-		if _, err := writer.WriteString("\n"); err != nil {
-			return err
-		}
+		builder.WriteString("\n")
 	}
 
 	for i, child := range obj.Value {
-		if err := printIndent(writer, indent, level+1); err != nil {
-			return err
-		}
-		if _, err := writer.WriteString(child.Name); err != nil {
-			return err
-		}
-		if _, err := writer.WriteString(": "); err != nil {
-			return err
-		}
-		if err := print(child.Value, writer, indent, level+1, false); err != nil {
-			return err
-		}
+		printIndent(builder, indent, level+1)
+		builder.WriteString(child.Name)
+		builder.WriteString(": ")
+		print(child.Value, builder, indent, level+1, false)
 		if i < len(obj.Value)-1 {
-			if _, err := writer.WriteString(","); err != nil {
-				return err
-			}
+			builder.WriteString(",")
 		}
 	}
 
 	if obj.TrailingSep {
-		if _, err := writer.WriteString(","); err != nil {
-			return err
-		}
+		builder.WriteString(",")
 	}
 
 	if len(obj.Value) > 0 {
-		if _, err := writer.WriteString("\n"); err != nil {
-			return err
-		}
-		if err := printIndent(writer, indent, level); err != nil {
-			return err
-		}
+		builder.WriteString("\n")
+		printIndent(builder, indent, level)
 	}
 
-	if _, err := writer.WriteString("}"); err != nil {
-		return err
-	}
-
-	return nil
+	builder.WriteString("}")
 }
 
-func printIndent(writer io.StringWriter, indent string, level int) error {
+func printIndent(builder *strings.Builder, indent string, level int) {
 	for i := 0; i < level; i++ {
-		if _, err := writer.WriteString(indent); err != nil {
-			return err
-		}
+		builder.WriteString(indent)
 	}
-	return nil
 }
