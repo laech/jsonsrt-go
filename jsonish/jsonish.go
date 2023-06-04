@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"io"
 	"jsonsrt/lexer"
+	"sort"
 	"strings"
 )
 
 type Node interface {
 	fmt.Stringer
 	format(builder *strings.Builder, indent string, level int, applyInitalIndent bool)
+	SortByName()
 }
 
 func Format(node Node) string {
@@ -26,6 +28,8 @@ func (val Value) String() string {
 	return Format(val)
 }
 
+func (val Value) SortByName() {}
+
 func (node Value) format(builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
 	if applyInitalIndent {
 		printIndent(builder, indent, level)
@@ -38,8 +42,14 @@ type Array struct {
 	TrailingSep bool
 }
 
-func (arr Array) String() string {
-	return Format(arr)
+func (node Array) String() string {
+	return Format(node)
+}
+
+func (node Array) SortByName() {
+	for _, v := range node.Value {
+		v.SortByName()
+	}
 }
 
 func (node Array) format(builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
@@ -81,8 +91,17 @@ type Object struct {
 	TrailingSep bool
 }
 
-func (obj Object) String() string {
-	return Format(obj)
+func (node Object) String() string {
+	return Format(node)
+}
+
+func (node Object) SortByName() {
+	for _, v := range node.Value {
+		v.Value.SortByName()
+	}
+	sort.Slice(node.Value, func(i, j int) bool {
+		return node.Value[i].Name < node.Value[j].Name
+	})
 }
 
 func (node Object) format(builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
@@ -132,7 +151,7 @@ func Parse(input string) (Node, error) {
 
 	token, err := lex.Next()
 	if err != io.EOF {
-		return nil, fmt.Errorf("expecting EOF at offset %d", token.Offset)
+		return nil, fmt.Errorf("expecting EOF at offset %d, got `%s`", token.Offset, token.Value)
 	}
 
 	return node, nil
@@ -155,7 +174,7 @@ func parseCurrent(lex *lexer.Lexer, token *lexer.Token) (Node, error) {
 	case lexer.Value:
 		return Value{token.Value}, nil
 	default:
-		return nil, fmt.Errorf("unexpected token at offset %d", token.Offset)
+		return nil, fmt.Errorf("unexpected token at offset %d: %s", token.Offset, token.Value)
 	}
 }
 
@@ -186,7 +205,7 @@ func parseArray(lex *lexer.Lexer) (Node, error) {
 			return Array{nodes, false}, nil
 		}
 		if token.Type != lexer.ValueSeparator {
-			return nil, fmt.Errorf("expecting value separator at offset %d", token.Offset)
+			return nil, fmt.Errorf("expecting value separator at offset %d, got `%s`", token.Offset, token.Value)
 		}
 	}
 }
@@ -203,7 +222,7 @@ func parseObject(lex *lexer.Lexer) (Node, error) {
 		}
 
 		if token.Type != lexer.Value {
-			return nil, fmt.Errorf("expecting member name at offset %d", token.Offset)
+			return nil, fmt.Errorf("expecting member name at offset %d, got `%s`", token.Offset, token.Value)
 		}
 		name := token.Value
 
@@ -212,7 +231,7 @@ func parseObject(lex *lexer.Lexer) (Node, error) {
 			return nil, err
 		}
 		if token.Type != lexer.NameSeparator {
-			return nil, fmt.Errorf("expecting name separator at offset %d", token.Offset)
+			return nil, fmt.Errorf("expecting name separator at offset %d, got `%s`", token.Offset, token.Value)
 		}
 
 		value, err := parseNext(lex)
@@ -230,7 +249,7 @@ func parseObject(lex *lexer.Lexer) (Node, error) {
 			return Object{members, false}, nil
 		}
 		if token.Type != lexer.ValueSeparator {
-			return nil, fmt.Errorf("expecting value separator at offset %d", token.Offset)
+			return nil, fmt.Errorf("expecting value separator at offset %d, got `%s`", token.Offset, token.Value)
 		}
 	}
 }
