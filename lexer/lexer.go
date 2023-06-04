@@ -24,12 +24,12 @@ type Token struct {
 }
 
 type Lexer struct {
-	input  string
+	input  []rune
 	offset int
 }
 
 func New(input string) *Lexer {
-	return &Lexer{input: input}
+	return &Lexer{input: []rune(input)}
 }
 
 func (lexer *Lexer) Next() (*Token, error) {
@@ -74,7 +74,7 @@ func (lexer *Lexer) readString() (*Token, error) {
 			if !escape && b == '"' {
 				offset := lexer.offset
 				lexer.offset = i + 1
-				return &Token{Value, lexer.input[offset:lexer.offset], offset}, nil
+				return &Token{Value, string(lexer.input[offset:lexer.offset]), offset}, nil
 			}
 			escape = false
 		}
@@ -94,10 +94,10 @@ func (lexer *Lexer) readStringish() *Token {
 			b == ':' {
 			offset := lexer.offset
 			lexer.offset = i
-			return &Token{Value, lexer.input[offset:i], offset}
+			return &Token{Value, string(lexer.input[offset:i]), offset}
 		}
 	}
 	offset := lexer.offset
 	lexer.offset = len(lexer.input)
-	return &Token{Value, lexer.input[offset:], offset}
+	return &Token{Value, string(lexer.input[offset:]), offset}
 }
