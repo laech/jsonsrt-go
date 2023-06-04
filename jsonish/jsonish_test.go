@@ -118,3 +118,187 @@ func TestFormat(t *testing.T) {
 		})
 	}
 }
+
+func TestSortByName(t *testing.T) {
+	tests := []struct {
+		input  jsonish.Node
+		output jsonish.Node
+	}{
+		{jsonish.Value{"1"}, jsonish.Value{"1"}},
+		{
+			jsonish.Object{[]jsonish.Member{}, false},
+			jsonish.Object{[]jsonish.Member{}, false},
+		},
+		{
+			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}}, false},
+			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}}, false},
+		},
+		{
+			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}, {"2", jsonish.Value{"b"}}}, false},
+			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}, {"2", jsonish.Value{"b"}}}, false},
+		},
+		{
+			jsonish.Object{[]jsonish.Member{{"2", jsonish.Value{"b"}}, {"1", jsonish.Value{"a"}}}, false},
+			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}, {"2", jsonish.Value{"b"}}}, false},
+		},
+		{
+			jsonish.Object{
+				[]jsonish.Member{
+					{"2", jsonish.Value{"b"}},
+					{"1", jsonish.Value{"a"}},
+					{"3", jsonish.Object{
+						[]jsonish.Member{
+							{"1", jsonish.Value{"one"}},
+							{"0", jsonish.Value{"zero"}},
+						},
+						false,
+					}},
+				},
+				false,
+			},
+			jsonish.Object{
+				[]jsonish.Member{
+					{"1", jsonish.Value{"a"}},
+					{"2", jsonish.Value{"b"}},
+					{"3", jsonish.Object{
+						[]jsonish.Member{
+							{"0", jsonish.Value{"zero"}},
+							{"1", jsonish.Value{"one"}},
+						},
+						false,
+					}},
+				},
+				false,
+			},
+		},
+		{
+			jsonish.Object{
+				[]jsonish.Member{
+					{"2", jsonish.Value{"b"}},
+					{"1", jsonish.Value{"a"}},
+					{"3", jsonish.Array{
+						[]jsonish.Node{
+							jsonish.Object{
+								[]jsonish.Member{
+									{"1", jsonish.Value{"one"}},
+									{"0", jsonish.Value{"zero"}},
+								},
+								false,
+							},
+						},
+						false,
+					}},
+				},
+				false,
+			},
+			jsonish.Object{
+				[]jsonish.Member{
+					{"1", jsonish.Value{"a"}},
+					{"2", jsonish.Value{"b"}},
+					{"3", jsonish.Array{
+						[]jsonish.Node{
+							jsonish.Object{
+								[]jsonish.Member{
+									{"0", jsonish.Value{"zero"}},
+									{"1", jsonish.Value{"one"}},
+								},
+								false,
+							},
+						},
+						false,
+					}},
+				},
+				false,
+			},
+		},
+		{
+			jsonish.Array{[]jsonish.Node{}, false},
+			jsonish.Array{[]jsonish.Node{}, false},
+		},
+		{
+			jsonish.Array{
+				[]jsonish.Node{
+					jsonish.Object{
+						[]jsonish.Member{
+							{"1", jsonish.Value{"one"}},
+							{"0", jsonish.Value{"zero"}},
+						},
+						false,
+					},
+				},
+				false,
+			},
+			jsonish.Array{
+				[]jsonish.Node{
+					jsonish.Object{
+						[]jsonish.Member{
+							{"0", jsonish.Value{"zero"}},
+							{"1", jsonish.Value{"one"}},
+						},
+						false,
+					},
+				},
+				false,
+			},
+		},
+		{
+			jsonish.Array{
+				[]jsonish.Node{
+					jsonish.Object{
+						[]jsonish.Member{
+							{"1", jsonish.Value{"one"}},
+							{"0", jsonish.Array{
+								[]jsonish.Node{
+									jsonish.Object{
+										[]jsonish.Member{
+											{"y", jsonish.Value{"yy"}},
+											{"x", jsonish.Value{"xx"}},
+										},
+										false,
+									},
+								},
+								false,
+							}},
+						},
+						false,
+					},
+				},
+				false,
+			},
+			jsonish.Array{
+				[]jsonish.Node{
+					jsonish.Object{
+						[]jsonish.Member{
+							{"0", jsonish.Array{
+								[]jsonish.Node{
+									jsonish.Object{
+										[]jsonish.Member{
+											{"x", jsonish.Value{"xx"}},
+											{"y", jsonish.Value{"yy"}},
+										},
+										false,
+									},
+								},
+								false,
+							}},
+							{"1", jsonish.Value{"one"}},
+						},
+						false,
+					},
+				},
+				false,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		str := test.input.String()
+		t.Run(str, func(t *testing.T) {
+			test.input.SortByName()
+			if !reflect.DeepEqual(test.input, test.output) {
+				t.Fatalf("\nexpected: `%s`\n     got: `%s`\n   input: `%s`\n",
+					test.output, test.input, str)
+			}
+		})
+	}
+}
