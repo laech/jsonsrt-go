@@ -14,22 +14,20 @@ func TestParse(t *testing.T) {
 		{"\"\"", jsonish.Value{"\"\""}},
 		{" \"hello\"", jsonish.Value{"\"hello\""}},
 		{"123", jsonish.Value{"123"}},
-		{"{}", jsonish.Object{[]jsonish.Member{}, false}},
-		{"{}", jsonish.Object{[]jsonish.Member{}, false}},
-		{"[]", jsonish.Array{[]jsonish.Node{}, false}},
+		{"{}", jsonish.Object{[]jsonish.Member{}}},
+		{"{}", jsonish.Object{[]jsonish.Member{}}},
+		{"[]", jsonish.Array{[]jsonish.Node{}}},
 
 		{"{\"a\": 1}", jsonish.Object{
 			[]jsonish.Member{
 				{"\"a\"", jsonish.Value{"1"}},
 			},
-			false,
 		}},
 
 		{"{\"a b\": null,}", jsonish.Object{
 			[]jsonish.Member{
 				{"\"a b\"", jsonish.Value{"null"}},
 			},
-			true,
 		}},
 
 		{"[true, null]", jsonish.Array{
@@ -37,12 +35,10 @@ func TestParse(t *testing.T) {
 				jsonish.Value{"true"},
 				jsonish.Value{"null"},
 			},
-			false,
 		}},
 
 		{"[0,]", jsonish.Array{
 			[]jsonish.Node{jsonish.Value{"0"}},
-			true,
 		}},
 	}
 
@@ -126,20 +122,20 @@ func TestSortByName(t *testing.T) {
 	}{
 		{jsonish.Value{"1"}, jsonish.Value{"1"}},
 		{
-			jsonish.Object{[]jsonish.Member{}, false},
-			jsonish.Object{[]jsonish.Member{}, false},
+			jsonish.Object{[]jsonish.Member{}},
+			jsonish.Object{[]jsonish.Member{}},
 		},
 		{
-			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}}, false},
-			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}}, false},
+			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}}},
+			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}}},
 		},
 		{
-			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}, {"2", jsonish.Value{"b"}}}, false},
-			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}, {"2", jsonish.Value{"b"}}}, false},
+			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}, {"2", jsonish.Value{"b"}}}},
+			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}, {"2", jsonish.Value{"b"}}}},
 		},
 		{
-			jsonish.Object{[]jsonish.Member{{"2", jsonish.Value{"b"}}, {"1", jsonish.Value{"a"}}}, false},
-			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}, {"2", jsonish.Value{"b"}}}, false},
+			jsonish.Object{[]jsonish.Member{{"2", jsonish.Value{"b"}}, {"1", jsonish.Value{"a"}}}},
+			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}, {"2", jsonish.Value{"b"}}}},
 		},
 		{
 			jsonish.Object{
@@ -149,13 +145,7 @@ func TestSortByName(t *testing.T) {
 					{"3", jsonish.Object{
 						[]jsonish.Member{
 							{"1", jsonish.Value{"one"}},
-							{"0", jsonish.Value{"zero"}},
-						},
-						false,
-					}},
-				},
-				false,
-			},
+							{"0", jsonish.Value{"zero"}}}}}}},
 			jsonish.Object{
 				[]jsonish.Member{
 					{"1", jsonish.Value{"a"}},
@@ -163,13 +153,7 @@ func TestSortByName(t *testing.T) {
 					{"3", jsonish.Object{
 						[]jsonish.Member{
 							{"0", jsonish.Value{"zero"}},
-							{"1", jsonish.Value{"one"}},
-						},
-						false,
-					}},
-				},
-				false,
-			},
+							{"1", jsonish.Value{"one"}}}}}}},
 		},
 		{
 			jsonish.Object{
@@ -181,16 +165,7 @@ func TestSortByName(t *testing.T) {
 							jsonish.Object{
 								[]jsonish.Member{
 									{"1", jsonish.Value{"one"}},
-									{"0", jsonish.Value{"zero"}},
-								},
-								false,
-							},
-						},
-						false,
-					}},
-				},
-				false,
-			},
+									{"0", jsonish.Value{"zero"}}}}}}}}},
 			jsonish.Object{
 				[]jsonish.Member{
 					{"1", jsonish.Value{"a"}},
@@ -200,20 +175,11 @@ func TestSortByName(t *testing.T) {
 							jsonish.Object{
 								[]jsonish.Member{
 									{"0", jsonish.Value{"zero"}},
-									{"1", jsonish.Value{"one"}},
-								},
-								false,
-							},
-						},
-						false,
-					}},
-				},
-				false,
-			},
+									{"1", jsonish.Value{"one"}}}}}}}}},
 		},
 		{
-			jsonish.Array{[]jsonish.Node{}, false},
-			jsonish.Array{[]jsonish.Node{}, false},
+			jsonish.Array{[]jsonish.Node{}},
+			jsonish.Array{[]jsonish.Node{}},
 		},
 		{
 			jsonish.Array{
@@ -221,25 +187,13 @@ func TestSortByName(t *testing.T) {
 					jsonish.Object{
 						[]jsonish.Member{
 							{"1", jsonish.Value{"one"}},
-							{"0", jsonish.Value{"zero"}},
-						},
-						false,
-					},
-				},
-				false,
-			},
+							{"0", jsonish.Value{"zero"}}}}}},
 			jsonish.Array{
 				[]jsonish.Node{
 					jsonish.Object{
 						[]jsonish.Member{
 							{"0", jsonish.Value{"zero"}},
-							{"1", jsonish.Value{"one"}},
-						},
-						false,
-					},
-				},
-				false,
-			},
+							{"1", jsonish.Value{"one"}}}}}},
 		},
 		{
 			jsonish.Array{
@@ -252,19 +206,7 @@ func TestSortByName(t *testing.T) {
 									jsonish.Object{
 										[]jsonish.Member{
 											{"y", jsonish.Value{"yy"}},
-											{"x", jsonish.Value{"xx"}},
-										},
-										false,
-									},
-								},
-								false,
-							}},
-						},
-						false,
-					},
-				},
-				false,
-			},
+											{"x", jsonish.Value{"xx"}}}}}}}}}}},
 			jsonish.Array{
 				[]jsonish.Node{
 					jsonish.Object{
@@ -274,20 +216,8 @@ func TestSortByName(t *testing.T) {
 									jsonish.Object{
 										[]jsonish.Member{
 											{"x", jsonish.Value{"xx"}},
-											{"y", jsonish.Value{"yy"}},
-										},
-										false,
-									},
-								},
-								false,
-							}},
-							{"1", jsonish.Value{"one"}},
-						},
-						false,
-					},
-				},
-				false,
-			},
+											{"y", jsonish.Value{"yy"}}}}}}},
+							{"1", jsonish.Value{"one"}}}}}},
 		},
 	}
 

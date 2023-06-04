@@ -38,8 +38,7 @@ func (node Value) format(builder *strings.Builder, indent string, level int, app
 }
 
 type Array struct {
-	Value       []Node
-	TrailingSep bool
+	Value []Node
 }
 
 func (node Array) String() string {
@@ -69,10 +68,6 @@ func (node Array) format(builder *strings.Builder, indent string, level int, app
 		}
 	}
 
-	if node.TrailingSep {
-		builder.WriteString(",")
-	}
-
 	if len(node.Value) > 0 {
 		builder.WriteString("\n")
 		printIndent(builder, indent, level)
@@ -87,8 +82,7 @@ type Member struct {
 }
 
 type Object struct {
-	Value       []Member
-	TrailingSep bool
+	Value []Member
 }
 
 func (node Object) String() string {
@@ -122,10 +116,6 @@ func (node Object) format(builder *strings.Builder, indent string, level int, ap
 		if i < len(node.Value)-1 {
 			builder.WriteString(",\n")
 		}
-	}
-
-	if node.TrailingSep {
-		builder.WriteString(",")
 	}
 
 	if len(node.Value) > 0 {
@@ -180,14 +170,14 @@ func parseCurrent(lex *lexer.Lexer, token *lexer.Token) (Node, error) {
 
 func parseArray(lex *lexer.Lexer) (Node, error) {
 	nodes := make([]Node, 0)
-	for i := 0; ; i++ {
+	for {
 
 		token, err := lex.Next()
 		if err != nil {
 			return nil, nil
 		}
 		if token.Type == lexer.EndArray {
-			return Array{nodes, i > 0}, nil
+			return Array{nodes}, nil
 		}
 
 		value, err := parseCurrent(lex, token)
@@ -202,7 +192,7 @@ func parseArray(lex *lexer.Lexer) (Node, error) {
 			return nil, err
 		}
 		if token.Type == lexer.EndArray {
-			return Array{nodes, false}, nil
+			return Array{nodes}, nil
 		}
 		if token.Type != lexer.ValueSeparator {
 			return nil, fmt.Errorf("expecting value separator at offset %d, got `%s`", token.Offset, token.Value)
@@ -212,13 +202,13 @@ func parseArray(lex *lexer.Lexer) (Node, error) {
 
 func parseObject(lex *lexer.Lexer) (Node, error) {
 	members := make([]Member, 0)
-	for i := 0; ; i++ {
+	for {
 		token, err := lex.Next()
 		if err != nil {
 			return nil, err
 		}
 		if token.Type == lexer.EndObject {
-			return Object{members, i > 0}, nil
+			return Object{members}, nil
 		}
 
 		if token.Type != lexer.Value {
@@ -246,7 +236,7 @@ func parseObject(lex *lexer.Lexer) (Node, error) {
 			return nil, err
 		}
 		if token.Type == lexer.EndObject {
-			return Object{members, false}, nil
+			return Object{members}, nil
 		}
 		if token.Type != lexer.ValueSeparator {
 			return nil, fmt.Errorf("expecting value separator at offset %d, got `%s`", token.Offset, token.Value)
