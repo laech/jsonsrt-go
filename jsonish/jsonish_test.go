@@ -11,35 +11,35 @@ func TestParse(t *testing.T) {
 		input  string
 		output jsonish.Node
 	}{
-		{"\"\"", jsonish.Value{"\"\""}},
-		{" \"hello\"", jsonish.Value{"\"hello\""}},
-		{"123", jsonish.Value{"123"}},
-		{"{}", jsonish.Object{[]jsonish.Member{}}},
-		{"{}", jsonish.Object{[]jsonish.Member{}}},
-		{"[]", jsonish.Array{[]jsonish.Node{}}},
+		{"\"\"", jsonish.Value("\"\"")},
+		{" \"hello\"", jsonish.Value("\"hello\"")},
+		{"123", jsonish.Value("123")},
+		{"{}", jsonish.Object([]jsonish.Member{})},
+		{"{}", jsonish.Object([]jsonish.Member{})},
+		{"[]", jsonish.Array([]jsonish.Node{})},
 
-		{"{\"a\": 1}", jsonish.Object{
+		{"{\"a\": 1}", jsonish.Object(
 			[]jsonish.Member{
-				{"\"a\"", jsonish.Value{"1"}},
+				{"\"a\"", jsonish.Value("1")},
 			},
-		}},
+		)},
 
-		{"{\"a b\": null,}", jsonish.Object{
+		{"{\"a b\": null,}", jsonish.Object(
 			[]jsonish.Member{
-				{"\"a b\"", jsonish.Value{"null"}},
+				{"\"a b\"", jsonish.Value("null")},
 			},
-		}},
+		)},
 
-		{"[true, null]", jsonish.Array{
+		{"[true, null]", jsonish.Array(
 			[]jsonish.Node{
-				jsonish.Value{"true"},
-				jsonish.Value{"null"},
+				jsonish.Value("true"),
+				jsonish.Value("null"),
 			},
-		}},
+		)},
 
-		{"[0,]", jsonish.Array{
-			[]jsonish.Node{jsonish.Value{"0"}},
-		}},
+		{"[0,]", jsonish.Array(
+			[]jsonish.Node{jsonish.Value("0")},
+		)},
 	}
 
 	for _, test := range tests {
@@ -120,104 +120,104 @@ func TestSortByName(t *testing.T) {
 		input  jsonish.Node
 		output jsonish.Node
 	}{
-		{jsonish.Value{"1"}, jsonish.Value{"1"}},
+		{jsonish.Value("1"), jsonish.Value("1")},
 		{
-			jsonish.Object{[]jsonish.Member{}},
-			jsonish.Object{[]jsonish.Member{}},
+			jsonish.Object([]jsonish.Member{}),
+			jsonish.Object([]jsonish.Member{}),
 		},
 		{
-			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}}},
-			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}}},
+			jsonish.Object([]jsonish.Member{{"1", jsonish.Value("a")}}),
+			jsonish.Object([]jsonish.Member{{"1", jsonish.Value("a")}}),
 		},
 		{
-			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}, {"2", jsonish.Value{"b"}}}},
-			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}, {"2", jsonish.Value{"b"}}}},
+			jsonish.Object([]jsonish.Member{{"1", jsonish.Value("a")}, {"2", jsonish.Value("b")}}),
+			jsonish.Object([]jsonish.Member{{"1", jsonish.Value("a")}, {"2", jsonish.Value("b")}}),
 		},
 		{
-			jsonish.Object{[]jsonish.Member{{"2", jsonish.Value{"b"}}, {"1", jsonish.Value{"a"}}}},
-			jsonish.Object{[]jsonish.Member{{"1", jsonish.Value{"a"}}, {"2", jsonish.Value{"b"}}}},
+			jsonish.Object([]jsonish.Member{{"2", jsonish.Value("b")}, {"1", jsonish.Value("a")}}),
+			jsonish.Object([]jsonish.Member{{"1", jsonish.Value("a")}, {"2", jsonish.Value("b")}}),
 		},
 		{
-			jsonish.Object{
+			jsonish.Object(
 				[]jsonish.Member{
-					{"2", jsonish.Value{"b"}},
-					{"1", jsonish.Value{"a"}},
-					{"3", jsonish.Object{
+					{"2", jsonish.Value("b")},
+					{"1", jsonish.Value("a")},
+					{"3", jsonish.Object(
 						[]jsonish.Member{
-							{"1", jsonish.Value{"one"}},
-							{"0", jsonish.Value{"zero"}}}}}}},
-			jsonish.Object{
+							{"1", jsonish.Value("one")},
+							{"0", jsonish.Value("zero")}})}}),
+			jsonish.Object(
 				[]jsonish.Member{
-					{"1", jsonish.Value{"a"}},
-					{"2", jsonish.Value{"b"}},
-					{"3", jsonish.Object{
+					{"1", jsonish.Value("a")},
+					{"2", jsonish.Value("b")},
+					{"3", jsonish.Object(
 						[]jsonish.Member{
-							{"0", jsonish.Value{"zero"}},
-							{"1", jsonish.Value{"one"}}}}}}},
+							{"0", jsonish.Value("zero")},
+							{"1", jsonish.Value("one")}})}}),
 		},
 		{
-			jsonish.Object{
+			jsonish.Object(
 				[]jsonish.Member{
-					{"2", jsonish.Value{"b"}},
-					{"1", jsonish.Value{"a"}},
-					{"3", jsonish.Array{
+					{"2", jsonish.Value("b")},
+					{"1", jsonish.Value("a")},
+					{"3", jsonish.Array(
 						[]jsonish.Node{
-							jsonish.Object{
+							jsonish.Object(
 								[]jsonish.Member{
-									{"1", jsonish.Value{"one"}},
-									{"0", jsonish.Value{"zero"}}}}}}}}},
-			jsonish.Object{
+									{"1", jsonish.Value("one")},
+									{"0", jsonish.Value("zero")}})})}}),
+			jsonish.Object(
 				[]jsonish.Member{
-					{"1", jsonish.Value{"a"}},
-					{"2", jsonish.Value{"b"}},
-					{"3", jsonish.Array{
+					{"1", jsonish.Value("a")},
+					{"2", jsonish.Value("b")},
+					{"3", jsonish.Array(
 						[]jsonish.Node{
-							jsonish.Object{
+							jsonish.Object(
 								[]jsonish.Member{
-									{"0", jsonish.Value{"zero"}},
-									{"1", jsonish.Value{"one"}}}}}}}}},
+									{"0", jsonish.Value("zero")},
+									{"1", jsonish.Value("one")}})})}}),
 		},
 		{
-			jsonish.Array{[]jsonish.Node{}},
-			jsonish.Array{[]jsonish.Node{}},
+			jsonish.Array([]jsonish.Node{}),
+			jsonish.Array([]jsonish.Node{}),
 		},
 		{
-			jsonish.Array{
+			jsonish.Array(
 				[]jsonish.Node{
-					jsonish.Object{
+					jsonish.Object(
 						[]jsonish.Member{
-							{"1", jsonish.Value{"one"}},
-							{"0", jsonish.Value{"zero"}}}}}},
-			jsonish.Array{
+							{"1", jsonish.Value("one")},
+							{"0", jsonish.Value("zero")}})}),
+			jsonish.Array(
 				[]jsonish.Node{
-					jsonish.Object{
+					jsonish.Object(
 						[]jsonish.Member{
-							{"0", jsonish.Value{"zero"}},
-							{"1", jsonish.Value{"one"}}}}}},
+							{"0", jsonish.Value("zero")},
+							{"1", jsonish.Value("one")}})}),
 		},
 		{
-			jsonish.Array{
+			jsonish.Array(
 				[]jsonish.Node{
-					jsonish.Object{
+					jsonish.Object(
 						[]jsonish.Member{
-							{"1", jsonish.Value{"one"}},
-							{"0", jsonish.Array{
+							{"1", jsonish.Value("one")},
+							{"0", jsonish.Array(
 								[]jsonish.Node{
-									jsonish.Object{
+									jsonish.Object(
 										[]jsonish.Member{
-											{"y", jsonish.Value{"yy"}},
-											{"x", jsonish.Value{"xx"}}}}}}}}}}},
-			jsonish.Array{
+											{"y", jsonish.Value("yy")},
+											{"x", jsonish.Value("xx")}})})}})}),
+			jsonish.Array(
 				[]jsonish.Node{
-					jsonish.Object{
+					jsonish.Object(
 						[]jsonish.Member{
-							{"0", jsonish.Array{
+							{"0", jsonish.Array(
 								[]jsonish.Node{
-									jsonish.Object{
+									jsonish.Object(
 										[]jsonish.Member{
-											{"x", jsonish.Value{"xx"}},
-											{"y", jsonish.Value{"yy"}}}}}}},
-							{"1", jsonish.Value{"one"}}}}}},
+											{"x", jsonish.Value("xx")},
+											{"y", jsonish.Value("yy")}})})},
+							{"1", jsonish.Value("one")}})}),
 		},
 	}
 

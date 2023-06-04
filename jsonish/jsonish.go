@@ -20,9 +20,7 @@ func Format(node Node) string {
 	return builder.String()
 }
 
-type Value struct {
-	Value string
-}
+type Value string
 
 func (val Value) String() string {
 	return Format(val)
@@ -34,19 +32,17 @@ func (node Value) format(builder *strings.Builder, indent string, level int, app
 	if applyInitalIndent {
 		printIndent(builder, indent, level)
 	}
-	builder.WriteString(node.Value)
+	builder.WriteString(string(node))
 }
 
-type Array struct {
-	Value []Node
-}
+type Array []Node
 
 func (node Array) String() string {
 	return Format(node)
 }
 
 func (node Array) SortByName() {
-	for _, v := range node.Value {
+	for _, v := range []Node(node) {
 		v.SortByName()
 	}
 }
@@ -57,18 +53,19 @@ func (node Array) format(builder *strings.Builder, indent string, level int, app
 	}
 	builder.WriteString("[")
 
-	if len(node.Value) > 0 {
+	nodes := []Node(node)
+	if len(nodes) > 0 {
 		builder.WriteString("\n")
 	}
 
-	for i, child := range node.Value {
+	for i, child := range nodes {
 		child.format(builder, indent, level+1, true)
-		if i < len(node.Value)-1 {
+		if i < len(nodes)-1 {
 			builder.WriteString(",\n")
 		}
 	}
 
-	if len(node.Value) > 0 {
+	if len(nodes) > 0 {
 		builder.WriteString("\n")
 		printIndent(builder, indent, level)
 	}
@@ -81,20 +78,19 @@ type Member struct {
 	Value Node
 }
 
-type Object struct {
-	Value []Member
-}
+type Object []Member
 
 func (node Object) String() string {
 	return Format(node)
 }
 
 func (node Object) SortByName() {
-	for _, v := range node.Value {
+	members := []Member(node)
+	for _, v := range members {
 		v.Value.SortByName()
 	}
-	sort.Slice(node.Value, func(i, j int) bool {
-		return node.Value[i].Name < node.Value[j].Name
+	sort.Slice(members, func(i, j int) bool {
+		return members[i].Name < members[j].Name
 	})
 }
 
@@ -104,21 +100,22 @@ func (node Object) format(builder *strings.Builder, indent string, level int, ap
 	}
 	builder.WriteString("{")
 
-	if len(node.Value) > 0 {
+	members := []Member(node)
+	if len(members) > 0 {
 		builder.WriteString("\n")
 	}
 
-	for i, child := range node.Value {
+	for i, child := range members {
 		printIndent(builder, indent, level+1)
 		builder.WriteString(child.Name)
 		builder.WriteString(": ")
 		child.Value.format(builder, indent, level+1, false)
-		if i < len(node.Value)-1 {
+		if i < len(members)-1 {
 			builder.WriteString(",\n")
 		}
 	}
 
-	if len(node.Value) > 0 {
+	if len(members) > 0 {
 		builder.WriteString("\n")
 		printIndent(builder, indent, level)
 	}
@@ -162,7 +159,7 @@ func parseCurrent(lex *lexer.Lexer, token *lexer.Token) (Node, error) {
 	case lexer.BeginArray:
 		return parseArray(lex)
 	case lexer.Value:
-		return Value{token.Value}, nil
+		return Value(token.Value), nil
 	default:
 		return nil, fmt.Errorf("unexpected token at offset %d: %s", token.Offset, token.Value)
 	}
@@ -177,7 +174,7 @@ func parseArray(lex *lexer.Lexer) (Node, error) {
 			return nil, nil
 		}
 		if token.Type == lexer.EndArray {
-			return Array{nodes}, nil
+			return Array(nodes), nil
 		}
 
 		value, err := parseCurrent(lex, token)
@@ -192,7 +189,7 @@ func parseArray(lex *lexer.Lexer) (Node, error) {
 			return nil, err
 		}
 		if token.Type == lexer.EndArray {
-			return Array{nodes}, nil
+			return Array(nodes), nil
 		}
 		if token.Type != lexer.ValueSeparator {
 			return nil, fmt.Errorf("expecting value separator at offset %d, got `%s`", token.Offset, token.Value)
@@ -208,7 +205,7 @@ func parseObject(lex *lexer.Lexer) (Node, error) {
 			return nil, err
 		}
 		if token.Type == lexer.EndObject {
-			return Object{members}, nil
+			return Object(members), nil
 		}
 
 		if token.Type != lexer.Value {
@@ -236,7 +233,7 @@ func parseObject(lex *lexer.Lexer) (Node, error) {
 			return nil, err
 		}
 		if token.Type == lexer.EndObject {
-			return Object{members}, nil
+			return Object(members), nil
 		}
 		if token.Type != lexer.ValueSeparator {
 			return nil, fmt.Errorf("expecting value separator at offset %d, got `%s`", token.Offset, token.Value)
