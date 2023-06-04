@@ -9,11 +9,12 @@ import (
 
 type Node interface {
 	fmt.Stringer
+	format(builder *strings.Builder, indent string, level int, applyInitalIndent bool)
 }
 
-func nodeString(node Node) string {
+func Format(node Node) string {
 	builder := strings.Builder{}
-	print(node, &builder, "  ", 0, false)
+	node.format(&builder, "  ", 0, false)
 	return builder.String()
 }
 
@@ -21,14 +22,53 @@ type Value struct {
 	Value string
 }
 
+func (val Value) String() string {
+	return Format(val)
+}
+
+func (node Value) format(builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
+	if applyInitalIndent {
+		printIndent(builder, indent, level)
+	}
+	builder.WriteString(node.Value)
+}
+
 type Array struct {
 	Value       []Node
 	TrailingSep bool
 }
 
-type Object struct {
-	Value       []Member
-	TrailingSep bool
+func (arr Array) String() string {
+	return Format(arr)
+}
+
+func (node Array) format(builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
+	if applyInitalIndent {
+		printIndent(builder, indent, level)
+	}
+	builder.WriteString("[")
+
+	if len(node.Value) > 0 {
+		builder.WriteString("\n")
+	}
+
+	for i, child := range node.Value {
+		child.format(builder, indent, level+1, true)
+		if i < len(node.Value)-1 {
+			builder.WriteString(",\n")
+		}
+	}
+
+	if node.TrailingSep {
+		builder.WriteString(",")
+	}
+
+	if len(node.Value) > 0 {
+		builder.WriteString("\n")
+		printIndent(builder, indent, level)
+	}
+
+	builder.WriteString("]")
 }
 
 type Member struct {
@@ -36,16 +76,51 @@ type Member struct {
 	Value Node
 }
 
-func (val Value) String() string {
-	return nodeString(val)
-}
-
-func (arr Array) String() string {
-	return nodeString(arr)
+type Object struct {
+	Value       []Member
+	TrailingSep bool
 }
 
 func (obj Object) String() string {
-	return nodeString(obj)
+	return Format(obj)
+}
+
+func (node Object) format(builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
+	if applyInitalIndent {
+		printIndent(builder, indent, level)
+	}
+	builder.WriteString("{")
+
+	if len(node.Value) > 0 {
+		builder.WriteString("\n")
+	}
+
+	for i, child := range node.Value {
+		printIndent(builder, indent, level+1)
+		builder.WriteString(child.Name)
+		builder.WriteString(": ")
+		child.Value.format(builder, indent, level+1, false)
+		if i < len(node.Value)-1 {
+			builder.WriteString(",\n")
+		}
+	}
+
+	if node.TrailingSep {
+		builder.WriteString(",")
+	}
+
+	if len(node.Value) > 0 {
+		builder.WriteString("\n")
+		printIndent(builder, indent, level)
+	}
+
+	builder.WriteString("}")
+}
+
+func printIndent(builder *strings.Builder, indent string, level int) {
+	for i := 0; i < level; i++ {
+		builder.WriteString(indent)
+	}
 }
 
 func Parse(input string) (Node, error) {
