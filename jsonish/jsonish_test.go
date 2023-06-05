@@ -106,7 +106,7 @@ func TestFormat(t *testing.T) {
 			if err != nil {
 				t.Fatalf("\nfailed: %s\n input: %s", err, test.input)
 			}
-			actual := jsonish.Format(node)
+			actual := node.String()
 			if actual != test.output {
 				t.Fatalf("\nexpected: `%s`\n     got: `%s`\n   input: `%s`\n",
 					test.output, actual, test.input)

@@ -15,40 +15,45 @@ type Node interface {
 	SortByValue(name string)
 }
 
-func Format(node Node) string {
+type Value string
+type Array []Node
+type Object []Member
+
+type Member struct {
+	Name  string
+	Value Node
+}
+
+func format(node Node) string {
 	builder := strings.Builder{}
 	node.format(&builder, "  ", 0, false)
 	return builder.String()
 }
 
-type Value string
-
-func (node Value) String() string {
-	return Format(node)
-}
+func (node Value) String() string  { return format(node) }
+func (node Array) String() string  { return format(node) }
+func (node Object) String() string { return format(node) }
 
 func (node Value) SortByName() {}
 
-func (node Value) SortByValue(name string) {}
-
-func (node Value) format(builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
-	if applyInitalIndent {
-		printIndent(builder, indent, level)
-	}
-	builder.WriteString(string(node))
-}
-
-type Array []Node
-
-func (node Array) String() string {
-	return Format(node)
-}
-
 func (node Array) SortByName() {
-	for _, v := range []Node(node) {
-		v.SortByName()
+	nodes := []Node(node)
+	for i := range nodes {
+		nodes[i].SortByName()
 	}
 }
+
+func (node Object) SortByName() {
+	members := []Member(node)
+	for i := range members {
+		members[i].Value.SortByName()
+	}
+	sort.Slice(members, func(i, j int) bool {
+		return members[i].Name < members[j].Name
+	})
+}
+
+func (node Value) SortByValue(name string) {}
 
 func (node Array) SortByValue(name string) {
 	nodes := []Node(node)
@@ -67,17 +72,18 @@ func (node Array) SortByValue(name string) {
 	})
 }
 
-func (node Object) findValue(name string) *Value {
+func (node Object) SortByValue(name string) {
 	members := []Member(node)
 	for i := range members {
-		if members[i].Name == name {
-			if val, ok := members[i].Value.(Value); ok {
-				return &val
-			}
-			return nil
-		}
+		members[i].Value.SortByValue(name)
 	}
-	return nil
+}
+
+func (node Value) format(builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
+	if applyInitalIndent {
+		printIndent(builder, indent, level)
+	}
+	builder.WriteString(string(node))
 }
 
 func (node Array) format(builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
@@ -104,33 +110,6 @@ func (node Array) format(builder *strings.Builder, indent string, level int, app
 	}
 
 	builder.WriteString("]")
-}
-
-type Member struct {
-	Name  string
-	Value Node
-}
-
-type Object []Member
-
-func (node Object) String() string {
-	return Format(node)
-}
-
-func (node Object) SortByName() {
-	members := []Member(node)
-	for _, v := range members {
-		v.Value.SortByName()
-	}
-	sort.Slice(members, func(i, j int) bool {
-		return members[i].Name < members[j].Name
-	})
-}
-
-func (node Object) SortByValue(name string) {
-	for _, v := range []Member(node) {
-		v.Value.SortByValue(name)
-	}
 }
 
 func (node Object) format(builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
@@ -166,6 +145,19 @@ func printIndent(builder *strings.Builder, indent string, level int) {
 	for i := 0; i < level; i++ {
 		builder.WriteString(indent)
 	}
+}
+
+func (node Object) findValue(name string) *Value {
+	members := []Member(node)
+	for i := range members {
+		if members[i].Name == name {
+			if val, ok := members[i].Value.(Value); ok {
+				return &val
+			}
+			return nil
+		}
+	}
+	return nil
 }
 
 func Parse(input string) (Node, error) {
