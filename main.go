@@ -10,6 +10,7 @@ import (
 
 func main() {
 	sortByName := flag.Bool("sort-by-name", false, "sort by name")
+	sortByValue := flag.String("sort-by-value", "", "sort by value")
 	flag.Parse()
 
 	input, err := io.ReadAll(os.Stdin)
@@ -30,6 +31,10 @@ func main() {
 
 	if *sortByName {
 		node.SortByName()
+	}
+
+	if *sortByValue != "" {
+		node.SortByValue(*sortByValue)
 	}
 
 	println(node.String())
