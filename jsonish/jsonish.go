@@ -169,7 +169,7 @@ func Parse(input string) (Node, error) {
 
 	token, err := lex.Next()
 	if err != io.EOF {
-		return nil, fmt.Errorf("expecting EOF at offset %d, got `%s`", token.Offset, token.Value)
+		return nil, fmt.Errorf("expecting EOF at offset %d", token.Offset())
 	}
 
 	return node, nil
@@ -183,16 +183,16 @@ func parseNext(lex *lexer.Lexer) (Node, error) {
 	return parseCurrent(lex, token)
 }
 
-func parseCurrent(lex *lexer.Lexer, token *lexer.Token) (Node, error) {
-	switch token.Type {
+func parseCurrent(lex *lexer.Lexer, token lexer.Token) (Node, error) {
+	switch token := token.(type) {
 	case lexer.BeginObject:
 		return parseObject(lex)
 	case lexer.BeginArray:
 		return parseArray(lex)
 	case lexer.Value:
-		return Value(token.Value), nil
+		return Value(token.Content), nil
 	default:
-		return nil, fmt.Errorf("unexpected token at offset %d: %s", token.Offset, token.Value)
+		return nil, fmt.Errorf("unexpected token at offset %d", token.Offset())
 	}
 }
 
@@ -204,7 +204,7 @@ func parseArray(lex *lexer.Lexer) (Node, error) {
 		if err != nil {
 			return nil, nil
 		}
-		if token.Type == lexer.EndArray {
+		if _, ok := token.(lexer.EndArray); ok {
 			return Array(nodes), nil
 		}
 
@@ -219,11 +219,11 @@ func parseArray(lex *lexer.Lexer) (Node, error) {
 		if err != nil {
 			return nil, err
 		}
-		if token.Type == lexer.EndArray {
+		if _, ok := token.(lexer.EndArray); ok {
 			return Array(nodes), nil
 		}
-		if token.Type != lexer.ValueSeparator {
-			return nil, fmt.Errorf("expecting value separator at offset %d, got `%s`", token.Offset, token.Value)
+		if _, ok := token.(lexer.ValueSeparator); !ok {
+			return nil, fmt.Errorf("expecting value separator at offset %d", token.Offset())
 		}
 	}
 }
@@ -235,21 +235,21 @@ func parseObject(lex *lexer.Lexer) (Node, error) {
 		if err != nil {
 			return nil, err
 		}
-		if token.Type == lexer.EndObject {
+		if _, ok := token.(lexer.EndObject); ok {
 			return Object(members), nil
 		}
 
-		if token.Type != lexer.Value {
-			return nil, fmt.Errorf("expecting member name at offset %d, got `%s`", token.Offset, token.Value)
+		name, ok := token.(lexer.Value)
+		if !ok {
+			return nil, fmt.Errorf("expecting member name at offset %d", token.Offset())
 		}
-		name := token.Value
 
 		token, err = lex.Next()
 		if err != nil {
 			return nil, err
 		}
-		if token.Type != lexer.NameSeparator {
-			return nil, fmt.Errorf("expecting name separator at offset %d, got `%s`", token.Offset, token.Value)
+		if _, ok := token.(lexer.NameSeparator); !ok {
+			return nil, fmt.Errorf("expecting name separator at offset %d", token.Offset())
 		}
 
 		value, err := parseNext(lex)
@@ -257,17 +257,17 @@ func parseObject(lex *lexer.Lexer) (Node, error) {
 			return nil, err
 		}
 
-		members = append(members, Member{name, value})
+		members = append(members, Member{name.Content, value})
 
 		token, err = lex.Next()
 		if err != nil {
 			return nil, err
 		}
-		if token.Type == lexer.EndObject {
+		if _, ok := token.(lexer.EndObject); ok {
 			return Object(members), nil
 		}
-		if token.Type != lexer.ValueSeparator {
-			return nil, fmt.Errorf("expecting value separator at offset %d, got `%s`", token.Offset, token.Value)
+		if _, ok := token.(lexer.ValueSeparator); !ok {
+			return nil, fmt.Errorf("expecting value separator at offset %d", token.Offset())
 		}
 	}
 }
