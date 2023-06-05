@@ -56,6 +56,7 @@ func (node Object) SortByName() {
 func (node Value) SortByValue(string) {}
 
 func (node Array) SortByValue(name string) {
+	name = "\"" + name + "\""
 	nodes := []Node(node)
 	sort.Slice(nodes, func(i, j int) bool {
 		a, aOk := nodes[i].(Object)

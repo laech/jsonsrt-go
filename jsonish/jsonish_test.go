@@ -232,3 +232,74 @@ func TestSortByName(t *testing.T) {
 		})
 	}
 }
+
+func TestSortByValue(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  Node
+		output Node
+	}{
+		{"", Value("1"), Value("1")},
+		{"", Object([]Member{}), Object([]Member{})},
+		{"", Array([]Node{}), Array([]Node{})},
+		{
+			"name",
+			Array([]Node{
+				Object([]Member{{"\"name\"", Value("1")}}),
+				Object([]Member{{"\"name\"", Value("2")}}),
+			}),
+			Array([]Node{
+				Object([]Member{{"\"name\"", Value("1")}}),
+				Object([]Member{{"\"name\"", Value("2")}}),
+			}),
+		},
+		{
+			"name",
+			Array([]Node{
+				Object([]Member{{"\"name\"", Value("2")}}),
+				Object([]Member{{"\"name\"", Value("1")}}),
+			}),
+			Array([]Node{
+				Object([]Member{{"\"name\"", Value("1")}}),
+				Object([]Member{{"\"name\"", Value("2")}}),
+			}),
+		},
+		{
+			"name",
+			Object([]Member{
+				{"\"name\"", Array([]Node{
+					Object([]Member{{"\"name\"", Value("2")}}),
+					Object([]Member{{"\"name\"", Value("1")}})})},
+			}),
+			Object([]Member{
+				{"\"name\"", Array([]Node{
+					Object([]Member{{"\"name\"", Value("1")}}),
+					Object([]Member{{"\"name\"", Value("2")}})})},
+			}),
+		},
+		{
+			"a",
+			Array([]Node{
+				Object([]Member{{"\"a\"", Value("1")}}),
+				Object([]Member{{"\"a\"", Value("2")}}),
+				Object([]Member{{"\"a\"", Value("0")}}),
+			}),
+			Array([]Node{
+				Object([]Member{{"\"a\"", Value("0")}}),
+				Object([]Member{{"\"a\"", Value("1")}}),
+				Object([]Member{{"\"a\"", Value("2")}}),
+			}),
+		},
+	}
+
+	for _, test := range tests {
+		str := test.input.String()
+		t.Run(str, func(t *testing.T) {
+			test.input.SortByValue(test.name)
+			if !reflect.DeepEqual(test.input, test.output) {
+				t.Fatalf("\nexpected: `%s`\n     got: `%s`\n   input: `%s`\n",
+					test.output, test.input, str)
+			}
+		})
+	}
+}

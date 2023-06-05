@@ -5,8 +5,6 @@ import (
 	"unicode"
 )
 
-type TokenType string
-
 type Token interface {
 	Offset() int
 }
