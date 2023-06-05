@@ -10,7 +10,7 @@ import (
 
 type Node interface {
 	fmt.Stringer
-	format(builder *strings.Builder, indent string, level int, applyInitalIndent bool)
+	format(builder *strings.Builder, indent string, level int, applyInitialIndent bool)
 	SortByName()
 	SortByValue(name string)
 }
@@ -53,7 +53,7 @@ func (node Object) SortByName() {
 	})
 }
 
-func (node Value) SortByValue(name string) {}
+func (node Value) SortByValue(string) {}
 
 func (node Array) SortByValue(name string) {
 	nodes := []Node(node)
@@ -79,15 +79,15 @@ func (node Object) SortByValue(name string) {
 	}
 }
 
-func (node Value) format(builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
-	if applyInitalIndent {
+func (node Value) format(builder *strings.Builder, indent string, level int, applyInitialIndent bool) {
+	if applyInitialIndent {
 		printIndent(builder, indent, level)
 	}
 	builder.WriteString(string(node))
 }
 
-func (node Array) format(builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
-	if applyInitalIndent {
+func (node Array) format(builder *strings.Builder, indent string, level int, applyInitialIndent bool) {
+	if applyInitialIndent {
 		printIndent(builder, indent, level)
 	}
 	builder.WriteString("[")
@@ -112,8 +112,8 @@ func (node Array) format(builder *strings.Builder, indent string, level int, app
 	builder.WriteString("]")
 }
 
-func (node Object) format(builder *strings.Builder, indent string, level int, applyInitalIndent bool) {
-	if applyInitalIndent {
+func (node Object) format(builder *strings.Builder, indent string, level int, applyInitialIndent bool) {
+	if applyInitialIndent {
 		printIndent(builder, indent, level)
 	}
 	builder.WriteString("{")

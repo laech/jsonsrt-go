@@ -9,7 +9,7 @@ import (
 
 func TestLexer(t *testing.T) {
 	for _, test := range tests {
-		t.Run(string(test.input), func(t *testing.T) {
+		t.Run(test.input, func(t *testing.T) {
 			tokens, err := readAllTokens(test.input)
 			if err != nil {
 				t.Fatalf("Lexer failed: %s", err)

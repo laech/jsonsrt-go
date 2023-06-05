@@ -105,7 +105,7 @@ func (lexer *Lexer) readString() (Token, error) {
 func (lexer *Lexer) readStringish() Token {
 	for i := lexer.offset; i < len(lexer.input); i++ {
 		b := lexer.input[i]
-		if unicode.IsSpace(rune(b)) ||
+		if unicode.IsSpace(b) ||
 			b == '{' ||
 			b == '}' ||
 			b == '[' ||
