@@ -11,8 +11,8 @@ func TestParse(t *testing.T) {
 		input  string
 		output Node
 	}{
-		{"\"\"", Value("\"\"")},
-		{" \"hello\"", Value("\"hello\"")},
+		{`""`, Value(`""`)},
+		{` "hello"`, Value(`"hello"`)},
 		{"123", Value("123")},
 		{"{}", Object([]Member{})},
 		{"{}", Object([]Member{})},
@@ -20,13 +20,13 @@ func TestParse(t *testing.T) {
 
 		{"{\"a\": 1}", Object(
 			[]Member{
-				{"\"a\"", Value("1")},
+				{`"a"`, Value("1")},
 			},
 		)},
 
 		{"{\"a b\": null,}", Object(
 			[]Member{
-				{"\"a b\"", Value("null")},
+				{`"a b"`, Value("null")},
 			},
 		)},
 
@@ -245,49 +245,49 @@ func TestSortByValue(t *testing.T) {
 		{
 			"name",
 			Array([]Node{
-				Object([]Member{{"\"name\"", Value("1")}}),
-				Object([]Member{{"\"name\"", Value("2")}}),
+				Object([]Member{{`"name"`, Value("1")}}),
+				Object([]Member{{`"name"`, Value("2")}}),
 			}),
 			Array([]Node{
-				Object([]Member{{"\"name\"", Value("1")}}),
-				Object([]Member{{"\"name\"", Value("2")}}),
+				Object([]Member{{`"name"`, Value("1")}}),
+				Object([]Member{{`"name"`, Value("2")}}),
 			}),
 		},
 		{
 			"name",
 			Array([]Node{
-				Object([]Member{{"\"name\"", Value("2")}}),
-				Object([]Member{{"\"name\"", Value("1")}}),
+				Object([]Member{{`"name"`, Value("2")}}),
+				Object([]Member{{`"name"`, Value("1")}}),
 			}),
 			Array([]Node{
-				Object([]Member{{"\"name\"", Value("1")}}),
-				Object([]Member{{"\"name\"", Value("2")}}),
+				Object([]Member{{`"name"`, Value("1")}}),
+				Object([]Member{{`"name"`, Value("2")}}),
 			}),
 		},
 		{
 			"name",
 			Object([]Member{
-				{"\"name\"", Array([]Node{
-					Object([]Member{{"\"name\"", Value("2")}}),
-					Object([]Member{{"\"name\"", Value("1")}})})},
+				{`"name"`, Array([]Node{
+					Object([]Member{{`"name"`, Value("2")}}),
+					Object([]Member{{`"name"`, Value("1")}})})},
 			}),
 			Object([]Member{
-				{"\"name\"", Array([]Node{
-					Object([]Member{{"\"name\"", Value("1")}}),
-					Object([]Member{{"\"name\"", Value("2")}})})},
+				{`"name"`, Array([]Node{
+					Object([]Member{{`"name"`, Value("1")}}),
+					Object([]Member{{`"name"`, Value("2")}})})},
 			}),
 		},
 		{
 			"a",
 			Array([]Node{
-				Object([]Member{{"\"a\"", Value("1")}}),
-				Object([]Member{{"\"a\"", Value("2")}}),
-				Object([]Member{{"\"a\"", Value("0")}}),
+				Object([]Member{{`"a"`, Value("1")}}),
+				Object([]Member{{`"a"`, Value("2")}}),
+				Object([]Member{{`"a"`, Value("0")}}),
 			}),
 			Array([]Node{
-				Object([]Member{{"\"a\"", Value("0")}}),
-				Object([]Member{{"\"a\"", Value("1")}}),
-				Object([]Member{{"\"a\"", Value("2")}}),
+				Object([]Member{{`"a"`, Value("0")}}),
+				Object([]Member{{`"a"`, Value("1")}}),
+				Object([]Member{{`"a"`, Value("2")}}),
 			}),
 		},
 	}
