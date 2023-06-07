@@ -14,32 +14,13 @@ func TestParse(t *testing.T) {
 		{`""`, Value(`""`)},
 		{` "hello"`, Value(`"hello"`)},
 		{"123", Value("123")},
-		{"{}", Object([]Member{})},
-		{"{}", Object([]Member{})},
-		{"[]", Array([]Node{})},
-
-		{"{\"a\": 1}", Object(
-			[]Member{
-				{`"a"`, Value("1")},
-			},
-		)},
-
-		{"{\"a b\": null,}", Object(
-			[]Member{
-				{`"a b"`, Value("null")},
-			},
-		)},
-
-		{"[true, null]", Array(
-			[]Node{
-				Value("true"),
-				Value("null"),
-			},
-		)},
-
-		{"[0,]", Array(
-			[]Node{Value("0")},
-		)},
+		{"{}", Object{}},
+		{"{}", Object{}},
+		{"[]", Array{}},
+		{"{\"a\": 1}", Object{{`"a"`, Value("1")}}},
+		{"{\"a b\": null,}", Object{{`"a b"`, Value("null")}}},
+		{"[true, null]", Array{Value("true"), Value("null")}},
+		{"[0,]", Array{Value("0")}},
 	}
 
 	for _, test := range tests {
@@ -121,103 +102,81 @@ func TestSortByName(t *testing.T) {
 		output Node
 	}{
 		{Value("1"), Value("1")},
+		{Object{}, Object{}},
 		{
-			Object([]Member{}),
-			Object([]Member{}),
+			Object{{"1", Value("a")}},
+			Object{{"1", Value("a")}},
 		},
 		{
-			Object([]Member{{"1", Value("a")}}),
-			Object([]Member{{"1", Value("a")}}),
+			Object{{"1", Value("a")}, {"2", Value("b")}},
+			Object{{"1", Value("a")}, {"2", Value("b")}},
 		},
 		{
-			Object([]Member{{"1", Value("a")}, {"2", Value("b")}}),
-			Object([]Member{{"1", Value("a")}, {"2", Value("b")}}),
+			Object{{"2", Value("b")}, {"1", Value("a")}},
+			Object{{"1", Value("a")}, {"2", Value("b")}},
 		},
 		{
-			Object([]Member{{"2", Value("b")}, {"1", Value("a")}}),
-			Object([]Member{{"1", Value("a")}, {"2", Value("b")}}),
+			Object{
+				{"2", Value("b")},
+				{"1", Value("a")},
+				{"3", Object{
+					{"1", Value("one")},
+					{"0", Value("zero")},
+				}},
+			},
+			Object{
+				{"1", Value("a")},
+				{"2", Value("b")},
+				{"3", Object{
+					{"0", Value("zero")},
+					{"1", Value("one")},
+				}},
+			},
 		},
 		{
-			Object(
-				[]Member{
-					{"2", Value("b")},
-					{"1", Value("a")},
-					{"3", Object(
-						[]Member{
-							{"1", Value("one")},
-							{"0", Value("zero")}})}}),
-			Object(
-				[]Member{
-					{"1", Value("a")},
-					{"2", Value("b")},
-					{"3", Object(
-						[]Member{
-							{"0", Value("zero")},
-							{"1", Value("one")}})}}),
+			Object{
+				{"2", Value("b")},
+				{"1", Value("a")},
+				{"3", Array{Object{
+					{"1", Value("one")},
+					{"0", Value("zero")},
+				}}},
+			},
+			Object{
+				{"1", Value("a")},
+				{"2", Value("b")},
+				{"3", Array{Object{
+					{"0", Value("zero")},
+					{"1", Value("one")}},
+				}},
+			},
+		},
+		{Array{}, Array{}},
+		{
+			Array{Object{
+				{"1", Value("one")},
+				{"0", Value("zero")},
+			}},
+			Array{Object{
+				{"0", Value("zero")},
+				{"1", Value("one")},
+			}},
 		},
 		{
-			Object(
-				[]Member{
-					{"2", Value("b")},
-					{"1", Value("a")},
-					{"3", Array(
-						[]Node{
-							Object(
-								[]Member{
-									{"1", Value("one")},
-									{"0", Value("zero")}})})}}),
-			Object(
-				[]Member{
-					{"1", Value("a")},
-					{"2", Value("b")},
-					{"3", Array(
-						[]Node{
-							Object(
-								[]Member{
-									{"0", Value("zero")},
-									{"1", Value("one")}})})}}),
-		},
-		{
-			Array([]Node{}),
-			Array([]Node{}),
-		},
-		{
-			Array(
-				[]Node{
-					Object(
-						[]Member{
-							{"1", Value("one")},
-							{"0", Value("zero")}})}),
-			Array(
-				[]Node{
-					Object(
-						[]Member{
-							{"0", Value("zero")},
-							{"1", Value("one")}})}),
-		},
-		{
-			Array(
-				[]Node{
-					Object(
-						[]Member{
-							{"1", Value("one")},
-							{"0", Array(
-								[]Node{
-									Object(
-										[]Member{
-											{"y", Value("yy")},
-											{"x", Value("xx")}})})}})}),
-			Array(
-				[]Node{
-					Object(
-						[]Member{
-							{"0", Array(
-								[]Node{
-									Object(
-										[]Member{
-											{"x", Value("xx")},
-											{"y", Value("yy")}})})},
-							{"1", Value("one")}})}),
+			Array{Object{
+				{"1", Value("one")},
+				{"0", Array{Object{
+					{"y", Value("yy")},
+					{"x", Value("xx")},
+				}}},
+			}},
+			Array{Object{
+				{"0", Array{Object{
+					{"x", Value("xx")},
+					{"y", Value("yy")},
+				}}},
+				{"1", Value("one")},
+			}},
 		},
 	}
 
@@ -240,55 +199,57 @@ func TestSortByValue(t *testing.T) {
 		output Node
 	}{
 		{"", Value("1"), Value("1")},
-		{"", Object([]Member{}), Object([]Member{})},
-		{"", Array([]Node{}), Array([]Node{})},
+		{"", Object{}, Object{}},
+		{"", Array{}, Array{}},
 		{
 			"name",
-			Array([]Node{
-				Object([]Member{{`"name"`, Value("1")}}),
-				Object([]Member{{`"name"`, Value("2")}}),
-			}),
-			Array([]Node{
-				Object([]Member{{`"name"`, Value("1")}}),
-				Object([]Member{{`"name"`, Value("2")}}),
-			}),
+			Array{
+				Object{{`"name"`, Value("1")}},
+				Object{{`"name"`, Value("2")}},
+			},
+			Array{
+				Object{{`"name"`, Value("1")}},
+				Object{{`"name"`, Value("2")}},
+			},
 		},
 		{
 			"name",
-			Array([]Node{
-				Object([]Member{{`"name"`, Value("2")}}),
-				Object([]Member{{`"name"`, Value("1")}}),
-			}),
-			Array([]Node{
-				Object([]Member{{`"name"`, Value("1")}}),
-				Object([]Member{{`"name"`, Value("2")}}),
-			}),
+			Array{
+				Object{{`"name"`, Value("2")}},
+				Object{{`"name"`, Value("1")}},
+			},
+			Array{
+				Object{{`"name"`, Value("1")}},
+				Object{{`"name"`, Value("2")}},
+			},
 		},
 		{
 			"name",
-			Object([]Member{
-				{`"name"`, Array([]Node{
-					Object([]Member{{`"name"`, Value("2")}}),
-					Object([]Member{{`"name"`, Value("1")}})})},
-			}),
-			Object([]Member{
-				{`"name"`, Array([]Node{
-					Object([]Member{{`"name"`, Value("1")}}),
-					Object([]Member{{`"name"`, Value("2")}})})},
-			}),
+			Object{
+				{`"name"`, Array{
+					Object{{`"name"`, Value("2")}},
+					Object{{`"name"`, Value("1")}},
+				}},
+			},
+			Object{
+				{`"name"`, Array{
+					Object{{`"name"`, Value("1")}},
+					Object{{`"name"`, Value("2")}},
+				}},
+			},
 		},
 		{
 			"a",
-			Array([]Node{
-				Object([]Member{{`"a"`, Value("1")}}),
-				Object([]Member{{`"a"`, Value("2")}}),
-				Object([]Member{{`"a"`, Value("0")}}),
-			}),
-			Array([]Node{
-				Object([]Member{{`"a"`, Value("0")}}),
-				Object([]Member{{`"a"`, Value("1")}}),
-				Object([]Member{{`"a"`, Value("2")}}),
-			}),
+			Array{
+				Object{{`"a"`, Value("1")}},
+				Object{{`"a"`, Value("2")}},
+				Object{{`"a"`, Value("0")}},
+			},
+			Array{
+				Object{{`"a"`, Value("0")}},
+				Object{{`"a"`, Value("1")}},
+				Object{{`"a"`, Value("2")}},
+			},
 		},
 	}
 
