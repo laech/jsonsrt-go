@@ -1,8 +1,7 @@
-package lexer_test
+package lexer
 
 import (
 	"io"
-	. "jsonsrt/lexer"
 	"reflect"
 	"testing"
 )

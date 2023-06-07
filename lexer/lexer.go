@@ -16,7 +16,7 @@ type EndArray int
 type NameSeparator int
 type ValueSeparator int
 type Value struct {
-	Offset_ int
+	offset  int
 	Content string
 }
 
@@ -26,7 +26,7 @@ func (token BeginArray) Offset() int     { return int(token) }
 func (token EndArray) Offset() int       { return int(token) }
 func (token NameSeparator) Offset() int  { return int(token) }
 func (token ValueSeparator) Offset() int { return int(token) }
-func (token Value) Offset() int          { return token.Offset_ }
+func (token Value) Offset() int          { return token.offset }
 
 type Lexer struct {
 	input  []rune

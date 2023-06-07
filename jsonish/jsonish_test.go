@@ -1,7 +1,6 @@
-package jsonish_test
+package jsonish
 
 import (
-	. "jsonsrt/jsonish"
 	"reflect"
 	"testing"
 )
