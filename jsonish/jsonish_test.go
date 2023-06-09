@@ -250,6 +250,29 @@ func TestSortByValue(t *testing.T) {
 				Object{{`"a"`, Value("2")}},
 			},
 		},
+		{
+			"a",
+			Array{
+				Object{
+					{`"a"`, Value("2")},
+					{`"b"`, Array{
+						Object{{`"a"`, Value("y")}},
+						Object{{`"a"`, Value("x")}},
+					}},
+				},
+				Object{{`"a"`, Value("0")}},
+			},
+			Array{
+				Object{{`"a"`, Value("0")}},
+				Object{
+					{`"a"`, Value("2")},
+					{`"b"`, Array{
+						Object{{`"a"`, Value("x")}},
+						Object{{`"a"`, Value("y")}},
+					}},
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {

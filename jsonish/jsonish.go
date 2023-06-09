@@ -56,8 +56,10 @@ func (node Object) SortByName() {
 func (node Value) SortByValue(string) {}
 
 func (node Array) SortByValue(name string) {
-	name = "\"" + name + "\""
 	nodes := []Node(node)
+	for i := range nodes {
+		nodes[i].SortByValue(name)
+	}
 	sort.Slice(nodes, func(i, j int) bool {
 		a, aOk := nodes[i].(Object)
 		b, bOk := nodes[j].(Object)
@@ -149,6 +151,7 @@ func printIndent(builder *strings.Builder, indent string, level int) {
 }
 
 func (node Object) findValue(name string) *Value {
+	name = `"` + name + `"`
 	members := []Member(node)
 	for i := range members {
 		if members[i].Name == name {
