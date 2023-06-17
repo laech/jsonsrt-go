@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"fmt"
 	"io"
 	"unicode"
 )
@@ -81,7 +82,7 @@ func (lexer *Lexer) skipSpaces() {
 
 func (lexer *Lexer) readString() (Token, error) {
 	if lexer.input[lexer.offset] != '"' {
-		panic("not at double quote")
+		panic(fmt.Errorf("not at double quote"))
 	}
 	escape := false
 	for i := lexer.offset + 1; i < len(lexer.input); i++ {
