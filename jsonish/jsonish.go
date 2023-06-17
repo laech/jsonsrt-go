@@ -49,7 +49,7 @@ func (node Object) SortByName() {
 		members[i].Value.SortByName()
 	}
 	sort.Slice(members, func(i, j int) bool {
-		return members[i].Name < members[j].Name
+		return unquote(members[i].Name) < unquote(members[j].Name)
 	})
 }
 
@@ -69,7 +69,7 @@ func (node Array) SortByValue(name string) {
 		x := a.findValue(name)
 		y := b.findValue(name)
 		if x != nil && b != nil {
-			return string(*x) < string(*y)
+			return unquote(string(*x)) < unquote(string(*y))
 		}
 		return false
 	})
@@ -79,6 +79,14 @@ func (node Object) SortByValue(name string) {
 	members := []Member(node)
 	for i := range members {
 		members[i].Value.SortByValue(name)
+	}
+}
+
+func unquote(str string) string {
+	if len(str) > 1 && str[0] == '"' && str[len(str)-1] == '"' {
+		return str[1 : len(str)-1]
+	} else {
+		return str
 	}
 }
 

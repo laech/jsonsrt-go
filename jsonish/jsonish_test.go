@@ -115,6 +115,10 @@ func TestSortByName(t *testing.T) {
 			Object{{"1", Value("a")}, {"2", Value("b")}},
 		},
 		{
+			Object{{`"1 "`, Value("x")}, {`"1"`, Value("x")}},
+			Object{{`"1"`, Value("x")}, {`"1 "`, Value("x")}},
+		},
+		{
 			Object{
 				{"2", Value("b")},
 				{"1", Value("a")},
@@ -200,6 +204,17 @@ func TestSortByValue(t *testing.T) {
 		{"", Value("1"), Value("1")},
 		{"", Object{}, Object{}},
 		{"", Array{}, Array{}},
+		{
+			"name",
+			Array{
+				Object{{`"name"`, Value(`"x "`)}},
+				Object{{`"name"`, Value(`"x"`)}},
+			},
+			Array{
+				Object{{`"name"`, Value(`"x"`)}},
+				Object{{`"name"`, Value(`"x "`)}},
+			},
+		},
 		{
 			"name",
 			Array{
