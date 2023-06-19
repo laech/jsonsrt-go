@@ -1,6 +1,7 @@
 package jsonish
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -31,65 +32,6 @@ func TestParse(t *testing.T) {
 			if !reflect.DeepEqual(node, test.output) {
 				t.Fatalf("\nexpected: %s\n     got: %s\n   input: %s",
 					test.output, node, test.input)
-			}
-		})
-	}
-}
-
-func TestFormat(t *testing.T) {
-	tests := []struct {
-		input  string
-		output string
-	}{
-		{"null", "null"},
-		{" true", "true"},
-		{"false ", "false"},
-		{" 1 ", "1"},
-		{"\t-2", "-2"},
-		{"-3e10\n", "-3e10"},
-		{"{}", "{}"},
-		{"[]", "[]"},
-
-		{`{"a":"hello"}`,
-			`{
-  "a": "hello"
-}`,
-		},
-
-		{`{"a":"hello", "b":  [1, 2 , false]}`,
-			`{
-  "a": "hello",
-  "b": [
-    1,
-    2,
-    false
-  ]
-}`,
-		},
-
-		{`["a", "hello", null, { "i": "x"}, -1.000 ]`,
-			`[
-  "a",
-  "hello",
-  null,
-  {
-    "i": "x"
-  },
-  -1.000
-]`,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.input, func(t *testing.T) {
-			node, err := Parse(test.input)
-			if err != nil {
-				t.Fatalf("\nfailed: %s\n input: %s", err, test.input)
-			}
-			actual := node.String()
-			if actual != test.output {
-				t.Fatalf("\nexpected: `%s`\n     got: `%s`\n   input: `%s`\n",
-					test.output, actual, test.input)
 			}
 		})
 	}
@@ -184,12 +126,11 @@ func TestSortByName(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		str := test.input.String()
-		t.Run(str, func(t *testing.T) {
+		t.Run(fmt.Sprintf("%#v", test.input), func(t *testing.T) {
 			test.input.SortByName()
 			if !reflect.DeepEqual(test.input, test.output) {
-				t.Fatalf("\nexpected: `%s`\n     got: `%s`\n   input: `%s`\n",
-					test.output, test.input, str)
+				t.Fatalf("\nexpected: `%#v`\n     got: `%#v`\n",
+					test.output, test.input)
 			}
 		})
 	}
@@ -291,12 +232,11 @@ func TestSortByValue(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		str := test.input.String()
-		t.Run(str, func(t *testing.T) {
+		t.Run(fmt.Sprintf("%#v", test.input), func(t *testing.T) {
 			test.input.SortByValue(test.name)
 			if !reflect.DeepEqual(test.input, test.output) {
-				t.Fatalf("\nexpected: `%s`\n     got: `%s`\n   input: `%s`\n",
-					test.output, test.input, str)
+				t.Fatalf("\nexpected: `%#v`\n     got: `%#v`\n",
+					test.output, test.input)
 			}
 		})
 	}

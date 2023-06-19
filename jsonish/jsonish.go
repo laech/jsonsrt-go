@@ -5,12 +5,9 @@ import (
 	"io"
 	"jsonsrt/lexer"
 	"sort"
-	"strings"
 )
 
 type Node interface {
-	fmt.Stringer
-	format(builder *strings.Builder, indent string, level int, applyInitialIndent bool)
 	SortByName()
 	SortByValue(name string)
 }
@@ -23,16 +20,6 @@ type Member struct {
 	Name  string
 	Value Node
 }
-
-func format(node Node) string {
-	builder := strings.Builder{}
-	node.format(&builder, "  ", 0, false)
-	return builder.String()
-}
-
-func (node Value) String() string  { return format(node) }
-func (node Array) String() string  { return format(node) }
-func (node Object) String() string { return format(node) }
 
 func (node Value) SortByName() {}
 
@@ -87,74 +74,6 @@ func unquote(str string) string {
 		return str[1 : len(str)-1]
 	} else {
 		return str
-	}
-}
-
-func (node Value) format(builder *strings.Builder, indent string, level int, applyInitialIndent bool) {
-	if applyInitialIndent {
-		printIndent(builder, indent, level)
-	}
-	builder.WriteString(string(node))
-}
-
-func (node Array) format(builder *strings.Builder, indent string, level int, applyInitialIndent bool) {
-	if applyInitialIndent {
-		printIndent(builder, indent, level)
-	}
-	builder.WriteString("[")
-
-	nodes := []Node(node)
-	if len(nodes) > 0 {
-		builder.WriteString("\n")
-	}
-
-	for i, child := range nodes {
-		child.format(builder, indent, level+1, true)
-		if i < len(nodes)-1 {
-			builder.WriteString(",\n")
-		}
-	}
-
-	if len(nodes) > 0 {
-		builder.WriteString("\n")
-		printIndent(builder, indent, level)
-	}
-
-	builder.WriteString("]")
-}
-
-func (node Object) format(builder *strings.Builder, indent string, level int, applyInitialIndent bool) {
-	if applyInitialIndent {
-		printIndent(builder, indent, level)
-	}
-	builder.WriteString("{")
-
-	members := []Member(node)
-	if len(members) > 0 {
-		builder.WriteString("\n")
-	}
-
-	for i, child := range members {
-		printIndent(builder, indent, level+1)
-		builder.WriteString(child.Name)
-		builder.WriteString(": ")
-		child.Value.format(builder, indent, level+1, false)
-		if i < len(members)-1 {
-			builder.WriteString(",\n")
-		}
-	}
-
-	if len(members) > 0 {
-		builder.WriteString("\n")
-		printIndent(builder, indent, level)
-	}
-
-	builder.WriteString("}")
-}
-
-func printIndent(builder *strings.Builder, indent string, level int) {
-	for i := 0; i < level; i++ {
-		builder.WriteString(indent)
 	}
 }
 
