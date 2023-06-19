@@ -28,11 +28,13 @@ func TestReadWriteToFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	stderr := strings.Builder{}
 	cmd := exec.Command("go", "run", "jsonsrt", temp.Name())
+	cmd.Stderr = &stderr
 	cmd.WaitDelay = time.Second * 5
 
 	if err := cmd.Run(); err != nil {
-		t.Fatal(err)
+		t.Fatalf("%s: %s", err, &stderr)
 	}
 
 	if _, err := temp.Seek(0, 0); err != nil {
@@ -53,15 +55,16 @@ expected: %#v
 }
 
 func TestReadWriteToStdinStdout(t *testing.T) {
-	var stdout strings.Builder
-
+	stdout := strings.Builder{}
+	stderr := strings.Builder{}
 	cmd := exec.Command("go", "run", "jsonsrt")
 	cmd.Stdin = strings.NewReader("{ }")
 	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 	cmd.WaitDelay = time.Second * 5
 
 	if err := cmd.Run(); err != nil {
-		t.Fatal(err)
+		t.Fatalf("%s: %s", err, &stderr)
 	}
 
 	expected := "{}\n"
@@ -74,15 +77,16 @@ expected: %#v
 }
 
 func TestCanSortByName(t *testing.T) {
-	var stdout strings.Builder
-
+	stdout := strings.Builder{}
+	stderr := strings.Builder{}
 	cmd := exec.Command("go", "run", "jsonsrt", "--sort-by-name")
 	cmd.Stdin = strings.NewReader(`{"1":0,"0":0}`)
 	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 	cmd.WaitDelay = time.Second * 5
 
 	if err := cmd.Run(); err != nil {
-		t.Fatal(err)
+		t.Fatalf("%s: %s", err, &stderr)
 	}
 
 	expected := `{
@@ -99,15 +103,16 @@ expected: %#v
 }
 
 func TestCanSortByValue(t *testing.T) {
-	var stdout strings.Builder
-
+	stdout := strings.Builder{}
+	stderr := strings.Builder{}
 	cmd := exec.Command("go", "run", "jsonsrt", "--sort-by-value", "x")
 	cmd.Stdin = strings.NewReader(`[{"x":1},{"x":0}]`)
 	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 	cmd.WaitDelay = time.Second * 5
 
 	if err := cmd.Run(); err != nil {
-		t.Fatal(err)
+		t.Fatalf("%s: %s", err, &stderr)
 	}
 
 	expected := `[
