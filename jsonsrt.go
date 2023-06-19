@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"jsonsrt/jsonish"
+	"jsonsrt/node"
 	"os"
 )
 
@@ -64,7 +64,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	node, err := jsonish.Parse(string(input))
+	node, err := node.Parse(string(input))
 	if err != nil {
 		if _, err := fmt.Fprintln(os.Stderr, "failed to parse input:", err.Error()); err != nil {
 			panic(err)

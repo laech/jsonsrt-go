@@ -1,4 +1,4 @@
-package jsonish
+package node
 
 import (
 	"reflect"
