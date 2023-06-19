@@ -1,11 +1,14 @@
-package format
+package jsonish
 
 import (
-	. "jsonsrt/jsonish"
 	"strings"
 )
 
-func Print(node Node) string {
+func (node Value) Format() string  { return format(node) }
+func (node Array) Format() string  { return format(node) }
+func (node Object) Format() string { return format(node) }
+
+func format(node Node) string {
 	builder := strings.Builder{}
 	print(node, &builder, "  ", 0, false)
 	return builder.String()

@@ -1,7 +1,6 @@
-package format
+package jsonish
 
 import (
-	"jsonsrt/jsonish"
 	"testing"
 )
 
@@ -51,11 +50,11 @@ func TestFormat(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.input, func(t *testing.T) {
-			node, err := jsonish.Parse(test.input)
+			node, err := Parse(test.input)
 			if err != nil {
 				t.Fatalf("\nfailed: %s\n input: %s", err, test.input)
 			}
-			actual := Print(node)
+			actual := node.Format()
 			if actual != test.output {
 				t.Fatalf("\nexpected: `%s`\n     got: `%s`\n   input: `%s`\n",
 					test.output, actual, test.input)

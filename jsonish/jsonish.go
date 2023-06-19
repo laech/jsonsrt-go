@@ -1,6 +1,7 @@
 package jsonish
 
 type Node interface {
+	Format() string
 	SortByName()
 	SortByValue(name string)
 }

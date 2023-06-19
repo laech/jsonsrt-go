@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"jsonsrt/format"
 	"jsonsrt/jsonish"
 	"os"
 )
@@ -80,7 +79,7 @@ func main() {
 		node.SortByValue(sortByValue)
 	}
 
-	output := format.Print(node) + "\n"
+	output := node.Format() + "\n"
 	if file == "" {
 		fmt.Print(output)
 	} else if err := os.WriteFile(file, []byte(output), 0666); err != nil {
